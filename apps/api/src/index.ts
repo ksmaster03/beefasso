@@ -17,6 +17,7 @@ import { authRoutes } from './routes/auth.ts';
 import { tenantRoutes } from './routes/tenant.ts';
 import { verifyRoutes } from './routes/verify.ts';
 import { memberRoutes } from './routes/members.ts';
+import { cattleRoutes } from './routes/cattle.ts';
 import { getSession } from './lib/auth.ts';
 
 type Env = { Variables: { tenant: TenantContext } };
@@ -47,6 +48,7 @@ app.route('/api/auth', authRoutes);
 app.route('/api/tenants', tenantRoutes);
 app.route('/api/verify', verifyRoutes);
 app.route('/api/members', memberRoutes);
+app.route('/api/cattle', cattleRoutes);
 
 // ----- Public SSR pages -----
 app.get('/', (c) => c.html(renderPlatformLanding()));
