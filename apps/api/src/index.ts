@@ -2,13 +2,20 @@ import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
 import { trimTrailingSlash } from 'hono/trailing-slash';
+import { eq } from 'drizzle-orm';
 import { resolveTenantFromPath, type TenantContext } from '@beefasso/shared';
+import { db, tenants } from '@beefasso/db';
 import { renderPlatformLanding } from './views/landing.tsx';
 import { renderTenantEntry } from './views/tenant-entry.tsx';
 import { renderVerify } from './views/verify.tsx';
+import { renderSignup } from './views/signup.tsx';
+import { renderLogin } from './views/login.tsx';
+import { renderAdmin } from './views/admin.tsx';
+import { renderTenantNotFound } from './views/not-found.tsx';
 import { authRoutes } from './routes/auth.ts';
 import { tenantRoutes } from './routes/tenant.ts';
 import { verifyRoutes } from './routes/verify.ts';
+import { getSession } from './lib/auth.ts';
 
 type Env = { Variables: { tenant: TenantContext } };
 
@@ -35,20 +42,36 @@ app.route('/api/tenants', tenantRoutes);
 app.route('/api/verify', verifyRoutes);
 
 // ----- Public SSR pages -----
+app.get('/', (c) => c.html(renderPlatformLanding()));
+app.get('/signup', (c) => c.html(renderSignup()));
+app.get('/login', (c) => c.html(renderLogin()));
 app.get('/verify/:certNo', renderVerify);
 
-// ----- Platform landing -----
-app.get('/', (c) => c.html(renderPlatformLanding()));
-
-// ----- Tenant SPA entry -----
-// /t/:slug and /t/:slug/app/* both load the SPA (React Router handles the rest)
-app.get('/t/:slug', (c) => {
-  const slug = c.req.param('slug');
-  return c.html(renderTenantEntry(slug));
+// Super admin dashboard
+app.get('/admin', async (c) => {
+  const user = await getSession(c);
+  if (!user) return c.redirect('/login');
+  if (user.platformRole !== 'super_admin') return c.html('<p>Forbidden</p>', 403);
+  const rows = await db
+    .select({ id: tenants.id, slug: tenants.slug, nameTh: tenants.nameTh, nameEn: tenants.nameEn, createdAt: tenants.createdAt })
+    .from(tenants)
+    .where(eq(tenants.status, 'pending'));
+  const pending = rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }));
+  return c.html(renderAdmin(user.name, pending));
 });
-app.get('/t/:slug/app/*', (c) => {
+
+// Tenant SPA entry — validated against DB
+app.get('/t/:slug', async (c) => {
   const slug = c.req.param('slug');
-  return c.html(renderTenantEntry(slug));
+  const [t] = await db.select().from(tenants).where(eq(tenants.slug, slug));
+  if (!t || t.status !== 'active') return c.html(renderTenantNotFound(slug), 404);
+  return c.html(renderTenantEntry(t.slug, t.nameTh));
+});
+app.get('/t/:slug/app/*', async (c) => {
+  const slug = c.req.param('slug');
+  const [t] = await db.select().from(tenants).where(eq(tenants.slug, slug));
+  if (!t || t.status !== 'active') return c.html(renderTenantNotFound(slug), 404);
+  return c.html(renderTenantEntry(t.slug, t.nameTh));
 });
 
 // 404
