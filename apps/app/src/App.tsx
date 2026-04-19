@@ -1,5 +1,6 @@
 import { Routes, Route, Link, useLocation } from 'react-router';
 import { MembersPage } from '@/pages/Members.tsx';
+import { MemberCreatePage, MemberEditPage } from '@/pages/MemberForm.tsx';
 import { CattlePage } from '@/pages/Cattle.tsx';
 import { DashboardPage } from '@/pages/Dashboard.tsx';
 
@@ -12,6 +13,8 @@ export function App({ tenantSlug, tenantName }: { tenantSlug: string; tenantName
           <Route path="/" element={<TenantHome slug={tenantSlug} name={tenantName} />} />
           <Route path="/app" element={<DashboardPage />} />
           <Route path="/app/members" element={<MembersPage />} />
+          <Route path="/app/members/new" element={<MemberCreatePage />} />
+          <Route path="/app/members/:id" element={<MemberEditPage />} />
           <Route path="/app/cattle" element={<CattlePage />} />
           <Route path="*" element={<TenantHome slug={tenantSlug} name={tenantName} />} />
         </Routes>

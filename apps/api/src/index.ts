@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
 import { trimTrailingSlash } from 'hono/trailing-slash';
+import { serveStatic } from 'hono/bun';
 import { eq } from 'drizzle-orm';
 import { resolveTenantFromPath, type TenantContext } from '@beefasso/shared';
 import { db, tenants } from '@beefasso/db';
@@ -15,6 +16,7 @@ import { renderTenantNotFound } from './views/not-found.tsx';
 import { authRoutes } from './routes/auth.ts';
 import { tenantRoutes } from './routes/tenant.ts';
 import { verifyRoutes } from './routes/verify.ts';
+import { memberRoutes } from './routes/members.ts';
 import { getSession } from './lib/auth.ts';
 
 type Env = { Variables: { tenant: TenantContext } };
@@ -24,6 +26,9 @@ const app = new Hono<Env>();
 app.use('*', logger());
 app.use('*', secureHeaders());
 app.use('*', trimTrailingSlash());
+
+// Serve built SPA assets (produced by `bun run --cwd apps/app build` into apps/api/public/assets).
+app.use('/assets/*', serveStatic({ root: './public' }));
 
 // Resolve tenant from URL path (/t/:slug/...).
 app.use('*', async (c, next) => {
@@ -40,6 +45,7 @@ app.get('/api/health', (c) =>
 app.route('/api/auth', authRoutes);
 app.route('/api/tenants', tenantRoutes);
 app.route('/api/verify', verifyRoutes);
+app.route('/api/members', memberRoutes);
 
 // ----- Public SSR pages -----
 app.get('/', (c) => c.html(renderPlatformLanding()));

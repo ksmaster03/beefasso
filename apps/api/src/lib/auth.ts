@@ -75,3 +75,15 @@ export const requireSuperAdmin: MiddlewareHandler<{ Variables: { user: SessionUs
   c.set('user', user);
   await next();
 };
+
+/** Require a logged-in user attached to an active tenant. */
+export const requireTenantAuth: MiddlewareHandler<{
+  Variables: { user: SessionUser; tenantId: string };
+}> = async (c, next) => {
+  const user = await getSession(c);
+  if (!user) return c.json({ error: 'unauthorized' }, 401);
+  if (!user.tenantId) return c.json({ error: 'no_active_tenant' }, 403);
+  c.set('user', user);
+  c.set('tenantId', user.tenantId);
+  await next();
+};
