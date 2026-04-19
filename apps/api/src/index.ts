@@ -27,8 +27,9 @@ app.use('*', logger());
 app.use('*', secureHeaders());
 app.use('*', trimTrailingSlash());
 
-// Serve built SPA assets (produced by `bun run --cwd apps/app build` into apps/api/public/assets).
+// Serve built SPA assets + static photos from apps/api/public.
 app.use('/assets/*', serveStatic({ root: './public' }));
+app.use('/photos/*', serveStatic({ root: './public' }));
 
 // Resolve tenant from URL path (/t/:slug/...).
 app.use('*', async (c, next) => {
