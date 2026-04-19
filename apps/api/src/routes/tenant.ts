@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { db, tenants, users, tenantUsers, feeConfigs } from '@beefasso/db';
 import { tenantSignupSchema } from '@beefasso/shared';
 import { hashPassword } from '../lib/auth.ts';
@@ -37,7 +37,8 @@ tenantRoutes.post('/signup', zValidator('json', tenantSignupSchema), async (c) =
       .returning({ id: users.id });
     await tx.insert(tenantUsers).values({ tenantId: t!.id, userId: u!.id, role: 'owner', active: true });
 
-    // seed default fee configs per tenant (admin can edit later)
+    // fee_configs has RLS policy keyed on app.tenant_id; scope this tx to the new tenant.
+    await tx.execute(sql.raw(`SET LOCAL app.tenant_id = '${t!.id}'`));
     await tx.insert(feeConfigs).values([
       { tenantId: t!.id, code: 'annual', name: 'ค่าสมาชิกรายปี', amount: '500.00', interval: 'year' },
       { tenantId: t!.id, code: 'lifetime', name: 'ค่าสมาชิกตลอดชีพ', amount: '10000.00', interval: null },
