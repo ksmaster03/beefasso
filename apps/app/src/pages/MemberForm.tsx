@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '@/lib/api.ts';
 import type { MemberRow } from '@beefasso/shared';
+import { CreatePaymentButton } from '@/components/CreatePaymentButton.tsx';
 
 type FormState = {
   memberNo: string;
@@ -93,6 +94,12 @@ function MemberFormInner({ mode, member }: { mode: 'create' | 'edit'; member?: M
       <h1 className="text-2xl font-bold text-slate-900">
         {mode === 'create' ? 'เพิ่มสมาชิกใหม่' : state.fullName || 'แก้ไขสมาชิก'}
       </h1>
+
+      {mode === 'edit' && member && (
+        <div className="mt-4">
+          <CreatePaymentButton memberId={member.id} />
+        </div>
+      )}
 
       <form onSubmit={submit} className="mt-6 space-y-5 rounded-xl border border-slate-200 bg-white p-6">
         <Field label="เลขสมาชิก" hint="เว้นว่างให้ระบบ gen ให้อัตโนมัติ">

@@ -5,6 +5,10 @@ import { CattlePage } from '@/pages/Cattle.tsx';
 import { CattleCreatePage } from '@/pages/CattleForm.tsx';
 import { CattleDetailPage } from '@/pages/CattleDetail.tsx';
 import { DashboardPage } from '@/pages/Dashboard.tsx';
+import { FeesPage } from '@/pages/Fees.tsx';
+import { PaymentsPage } from '@/pages/Payments.tsx';
+import { PaymentDetailPage } from '@/pages/PaymentDetail.tsx';
+import { SettingsPage } from '@/pages/Settings.tsx';
 
 export function App({ tenantSlug, tenantName }: { tenantSlug: string; tenantName: string }) {
   return (
@@ -20,6 +24,10 @@ export function App({ tenantSlug, tenantName }: { tenantSlug: string; tenantName
           <Route path="/app/cattle" element={<CattlePage />} />
           <Route path="/app/cattle/new" element={<CattleCreatePage />} />
           <Route path="/app/cattle/:id" element={<CattleDetailPage />} />
+          <Route path="/app/fees" element={<FeesPage />} />
+          <Route path="/app/payments" element={<PaymentsPage />} />
+          <Route path="/app/payments/:id" element={<PaymentDetailPage />} />
+          <Route path="/app/settings" element={<SettingsPage />} />
           <Route path="*" element={<TenantHome slug={tenantSlug} name={tenantName} />} />
         </Routes>
       </main>
@@ -72,6 +80,9 @@ function Sidebar({ tenantSlug, tenantName }: { tenantSlug: string; tenantName: s
         <NavItem to="/app" label="ภาพรวม" />
         <NavItem to="/app/members" label="สมาชิก" />
         <NavItem to="/app/cattle" label="ทะเบียนโค" />
+        <NavItem to="/app/payments" label="การชำระเงิน" />
+        <NavItem to="/app/fees" label="ค่าธรรมเนียม" />
+        <NavItem to="/app/settings" label="ตั้งค่า" />
       </nav>
     </aside>
   );
