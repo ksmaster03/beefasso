@@ -1,0 +1,13 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: beefasso-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: beefasso
+      POSTGRES_PASSWORD: beefasso
+      POSTGRES_DB: beefasso
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./.docker-data/postgres:/var/lib/postgresql/data

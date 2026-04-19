@@ -1,0 +1,226 @@
+// Beefasso / Jungdee — Multi-tenant SaaS for cattle breeders associations
+// All business tables include tenant_id and are protected by Postgres RLS.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// Platform layer (no tenant_id — shared across all tenants)
+// ============================================================
+
+enum TenantStatus {
+  pending
+  active
+  suspended
+}
+
+enum PlatformRole {
+  super_admin
+  user
+}
+
+enum TenantRole {
+  owner
+  admin
+  staff
+  member
+}
+
+enum MemberType {
+  annual
+  lifetime
+  honorary
+}
+
+enum MemberStatus {
+  active
+  expired
+  suspended
+}
+
+enum CattleSex {
+  male
+  female
+}
+
+enum PaymentStatus {
+  pending
+  verified
+  rejected
+}
+
+enum VerifyMethod {
+  manual
+  easyslip
+}
+
+model Tenant {
+  id         String       @id @default(uuid()) @db.Uuid
+  slug       String       @unique
+  nameTh     String       @map("name_th")
+  nameEn     String?      @map("name_en")
+  logoUrl    String?      @map("logo_url")
+  status     TenantStatus @default(pending)
+  plan       String       @default("free")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  approvedAt DateTime?    @map("approved_at")
+  settings   Json         @default("{}")
+
+  users        TenantUser[]
+  members      Member[]
+  cattle       Cattle[]
+  payments     Payment[]
+  feeConfigs   FeeConfig[]
+  certificates Certificate[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String       @id @default(uuid()) @db.Uuid
+  email        String       @unique
+  passwordHash String       @map("password_hash")
+  name         String
+  platformRole PlatformRole @default(user) @map("platform_role")
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  tenantLinks TenantUser[]
+
+  @@map("users")
+}
+
+model TenantUser {
+  tenantId String     @map("tenant_id") @db.Uuid
+  userId   String     @map("user_id") @db.Uuid
+  role     TenantRole
+  active   Boolean    @default(true)
+  memberId String?    @map("member_id") @db.Uuid
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  member Member? @relation(fields: [memberId], references: [id])
+
+  @@id([tenantId, userId])
+  @@index([userId])
+  @@map("tenant_users")
+}
+
+// ============================================================
+// Tenant business data (all rows filtered by RLS on tenant_id)
+// ============================================================
+
+model FeeConfig {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  code      String
+  name      String
+  amount    Decimal  @db.Decimal(12, 2)
+  interval  String? // 'year' | 'one_time' | null
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, code])
+  @@map("fee_configs")
+}
+
+model Member {
+  id         String       @id @default(uuid()) @db.Uuid
+  tenantId   String       @map("tenant_id") @db.Uuid
+  memberNo   String       @map("member_no")
+  fullName   String       @map("full_name")
+  phone      String?
+  email      String?
+  address    String?
+  type       MemberType
+  status     MemberStatus @default(active)
+  joinedAt   DateTime     @default(now()) @map("joined_at")
+  expiredAt  DateTime?    @map("expired_at")
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantUsers  TenantUser[]
+  ownedCattle  Cattle[]      @relation("CattleOwner")
+  payments     Payment[]
+
+  @@unique([tenantId, memberNo])
+  @@index([tenantId, status])
+  @@map("members")
+}
+
+model Cattle {
+  id              String    @id @default(uuid()) @db.Uuid
+  tenantId        String    @map("tenant_id") @db.Uuid
+  regNo           String    @map("reg_no")
+  earTag          String    @map("ear_tag")
+  name            String?
+  breed           String?
+  sex             CattleSex
+  dob             DateTime?
+  color           String?
+  sireId          String?   @map("sire_id") @db.Uuid
+  damId           String?   @map("dam_id") @db.Uuid
+  currentOwnerId  String?   @map("current_owner_id") @db.Uuid
+  photoUrls       String[]  @map("photo_urls")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sire         Cattle?       @relation("Sire", fields: [sireId], references: [id])
+  dam          Cattle?       @relation("Dam", fields: [damId], references: [id])
+  sireOf       Cattle[]      @relation("Sire")
+  damOf        Cattle[]      @relation("Dam")
+  currentOwner Member?       @relation("CattleOwner", fields: [currentOwnerId], references: [id])
+  certificates Certificate[]
+
+  @@unique([tenantId, regNo])
+  @@unique([tenantId, earTag])
+  @@index([tenantId, sireId])
+  @@index([tenantId, damId])
+  @@map("cattle")
+}
+
+model Payment {
+  id           String        @id @default(uuid()) @db.Uuid
+  tenantId     String        @map("tenant_id") @db.Uuid
+  memberId     String        @map("member_id") @db.Uuid
+  feeCode      String        @map("fee_code")
+  amount       Decimal       @db.Decimal(12, 2)
+  refCode      String        @map("ref_code")
+  slipUrl      String?       @map("slip_url")
+  status       PaymentStatus @default(pending)
+  verifyMethod VerifyMethod? @map("verify_method")
+  verifiedBy   String?       @map("verified_by") @db.Uuid
+  verifiedAt   DateTime?     @map("verified_at")
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@unique([tenantId, refCode])
+  @@index([tenantId, status])
+  @@map("payments")
+}
+
+model Certificate {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  cattleId   String   @map("cattle_id") @db.Uuid
+  certNo     String   @map("cert_no")
+  issuedAt   DateTime @default(now()) @map("issued_at")
+  pdfS3Key   String   @map("pdf_s3_key")
+  verifyHash String   @map("verify_hash")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cattle Cattle @relation(fields: [cattleId], references: [id])
+
+  @@unique([tenantId, certNo])
+  @@unique(verifyHash)
+  @@map("certificates")
+}
