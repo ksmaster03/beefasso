@@ -38,6 +38,8 @@ export function CattleDetailPage() {
 
       <PhotoGallery cattleId={c.id} photoUrls={c.photoUrls} />
 
+      <Certificates cattleId={c.id} />
+
       <Section title="ข้อมูลทั่วไป">
         <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
           <Info label="เลขทะเบียน" value={c.regNo} />
@@ -111,6 +113,78 @@ function PhotoGallery({ cattleId, photoUrls }: { cattleId: string; photoUrls: st
               </button>
             </div>
           ))}
+        </div>
+      )}
+    </Section>
+  );
+}
+
+// ---------- Certificates ----------
+function Certificates({ cattleId }: { cattleId: string }) {
+  const qc = useQueryClient();
+  const { data } = useQuery<{ certificates: { id: string; certNo: string; issuedAt: string }[] }>({
+    queryKey: ['certificates', cattleId],
+    queryFn: ({ signal }) => api(`/api/certificates/cattle/${cattleId}`, { signal }),
+  });
+  const issue = useMutation({
+    mutationFn: () => api<{ certificate: { id: string; certNo: string }; verifyUrl: string }>(`/api/certificates/cattle/${cattleId}`, { method: 'POST' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['certificates', cattleId] }),
+  });
+  const rows = data?.certificates ?? [];
+
+  return (
+    <Section
+      title="ใบเพ็ดดีกรี"
+      right={
+        <button
+          type="button"
+          onClick={() => issue.mutate()}
+          disabled={issue.isPending}
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-60"
+        >
+          {issue.isPending ? 'กำลังออก...' : '+ ออกใบเพ็ดดีกรี'}
+        </button>
+      }
+    >
+      {rows.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
+          ยังไม่มีใบเพ็ดดีกรี
+        </div>
+      ) : (
+        <div className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+          {rows.map((cert) => {
+            const verifyUrl = `${window.location.origin}/verify/${cert.certNo}`;
+            return (
+              <div key={cert.id} className="flex items-center justify-between gap-4 p-4">
+                <div>
+                  <div className="font-mono text-sm text-primary-700">{cert.certNo}</div>
+                  <div className="text-xs text-slate-500">
+                    ออกเมื่อ {new Date(cert.issuedAt).toLocaleString('th-TH')}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={`/api/certificates/${cert.id}/pdf`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:border-primary-500"
+                  >
+                    PDF
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(verifyUrl);
+                    }}
+                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:border-primary-500"
+                    title={verifyUrl}
+                  >
+                    คัดลอกลิงก์ verify
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </Section>

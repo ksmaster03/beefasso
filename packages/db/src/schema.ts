@@ -166,6 +166,10 @@ export const certificates = pgTable(
     issuedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     pdfS3Key: text().notNull(),
     verifyHash: text().notNull().unique(),
+    // Snapshot of cattle, pedigree, owner, tenant at issue time - used for
+    // public verify pages and ensures the record stays immutable even if the
+    // underlying data changes.
+    snapshot: jsonb().notNull().default({}),
   },
   (t) => [uniqueIndex('certificates_tenant_no').on(t.tenantId, t.certNo)],
 );

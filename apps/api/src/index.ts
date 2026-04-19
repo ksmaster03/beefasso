@@ -21,6 +21,7 @@ import { cattleRoutes } from './routes/cattle.ts';
 import { feeConfigRoutes } from './routes/fee-configs.ts';
 import { paymentRoutes } from './routes/payments.ts';
 import { settingsRoutes } from './routes/settings.ts';
+import { certificateRoutes } from './routes/certificates.ts';
 import { getSession } from './lib/auth.ts';
 
 type Env = { Variables: { tenant: TenantContext } };
@@ -55,6 +56,7 @@ app.route('/api/cattle', cattleRoutes);
 app.route('/api/fee-configs', feeConfigRoutes);
 app.route('/api/payments', paymentRoutes);
 app.route('/api/settings', settingsRoutes);
+app.route('/api/certificates', certificateRoutes);
 
 // ----- Public SSR pages -----
 app.get('/', (c) => c.html(renderPlatformLanding()));
