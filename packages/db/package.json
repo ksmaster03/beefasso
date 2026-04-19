@@ -14,15 +14,18 @@
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
     "studio": "drizzle-kit studio",
-    "rls": "bun run src/apply-rls.ts"
+    "rls": "bun run src/apply-rls.ts",
+    "seed:admin": "bun run src/seed-super-admin.ts"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "drizzle-orm": "^0.38.3",
     "postgres": "^3.4.5"
   },
   "devDependencies": {
     "drizzle-kit": "^0.30.1",
     "@types/bun": "^1.1.14",
+    "@types/bcryptjs": "^2.4.6",
     "typescript": "^5.7.2"
   }
 }
