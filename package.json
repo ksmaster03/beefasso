@@ -2,21 +2,23 @@
   "name": "beefasso",
   "version": "0.0.1",
   "private": true,
-  "packageManager": "pnpm@10.33.0",
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "lint": "turbo run lint",
-    "typecheck": "turbo run typecheck",
-    "db:push": "pnpm --filter @beefasso/db db:push",
-    "db:studio": "pnpm --filter @beefasso/db db:studio"
+    "dev": "bun run --filter '*' dev",
+    "dev:api": "bun run --cwd apps/api dev",
+    "dev:app": "bun run --cwd apps/app dev",
+    "build": "bun run --filter '*' build",
+    "typecheck": "bun run --filter '*' typecheck",
+    "db:push": "bun run --cwd packages/db push",
+    "db:studio": "bun run --cwd packages/db studio",
+    "db:rls": "bun run --cwd packages/db rls"
   },
   "devDependencies": {
-    "turbo": "^2.3.3",
     "typescript": "^5.7.2",
-    "prettier": "^3.4.2"
+    "prettier": "^3.4.2",
+    "@types/bun": "^1.1.14"
   },
   "engines": {
-    "node": ">=20"
+    "bun": ">=1.1.0"
   }
 }

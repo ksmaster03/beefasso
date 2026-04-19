@@ -1,0 +1,6 @@
+[install]
+# Bun workspace installs
+linker = "isolated"
+
+[install.scopes]
+# default npm registry

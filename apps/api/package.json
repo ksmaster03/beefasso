@@ -1,0 +1,27 @@
+{
+  "name": "@beefasso/api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --hot src/index.ts",
+    "start": "bun run src/index.ts",
+    "build": "bun build src/index.ts --target=bun --outfile=dist/server.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@beefasso/db": "workspace:*",
+    "@beefasso/shared": "workspace:*",
+    "hono": "^4.6.14",
+    "@hono/zod-validator": "^0.4.2",
+    "zod": "^3.24.1",
+    "jose": "^5.9.6",
+    "bcryptjs": "^2.4.3",
+    "promptpay-qr": "^0.5.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.14",
+    "@types/bcryptjs": "^2.4.6",
+    "typescript": "^5.7.2"
+  }
+}
