@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
 import { trimTrailingSlash } from 'hono/trailing-slash';
-import { resolveTenantFromHost, type TenantContext } from '@beefasso/shared';
+import { resolveTenantFromPath, type TenantContext } from '@beefasso/shared';
 import { renderPlatformLanding } from './views/landing.tsx';
 import { renderTenantEntry } from './views/tenant-entry.tsx';
 import { renderVerify } from './views/verify.tsx';
@@ -18,10 +18,9 @@ app.use('*', logger());
 app.use('*', secureHeaders());
 app.use('*', trimTrailingSlash());
 
-// Resolve tenant from Host header on every request.
+// Resolve tenant from URL path (/t/:slug/...).
 app.use('*', async (c, next) => {
-  const host = c.req.header('host');
-  const tenant = resolveTenantFromHost(host);
+  const tenant = resolveTenantFromPath(new URL(c.req.url).pathname);
   c.set('tenant', tenant);
   await next();
 });
@@ -38,21 +37,18 @@ app.route('/api/verify', verifyRoutes);
 // ----- Public SSR pages -----
 app.get('/verify/:certNo', renderVerify);
 
-// ----- SPA + landing -----
-// Platform root → landing page (SSR)
-// Tenant subdomain → entry page that loads SPA
-app.get('/', (c) => {
-  const t = c.get('tenant');
-  if (t.kind === 'platform') return c.html(renderPlatformLanding());
-  return c.html(renderTenantEntry(t.slug));
-});
+// ----- Platform landing -----
+app.get('/', (c) => c.html(renderPlatformLanding()));
 
-// SPA fallback — serve index.html for /app/* (Vite build output).
-// In dev, Vite runs at :5173 and handles its own routes.
-app.get('/app/*', (c) => {
-  const t = c.get('tenant');
-  if (t.kind !== 'tenant') return c.redirect('/');
-  return c.html(renderTenantEntry(t.slug));
+// ----- Tenant SPA entry -----
+// /t/:slug and /t/:slug/app/* both load the SPA (React Router handles the rest)
+app.get('/t/:slug', (c) => {
+  const slug = c.req.param('slug');
+  return c.html(renderTenantEntry(slug));
+});
+app.get('/t/:slug/app/*', (c) => {
+  const slug = c.req.param('slug');
+  return c.html(renderTenantEntry(slug));
 });
 
 // 404

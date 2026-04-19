@@ -18,23 +18,25 @@ export const tenantSignupSchema = z.object({
 
 export type TenantSignupInput = z.infer<typeof tenantSignupSchema>;
 
-const ROOT = (typeof process !== 'undefined' && process.env.ROOT_DOMAIN) || 'jungdee.growgenius.co.th';
-
 export type TenantContext =
   | { kind: 'platform' }
-  | { kind: 'tenant'; slug: string };
+  | { kind: 'tenant'; slug: string; basePath: string };
 
-export function resolveTenantFromHost(host: string | null | undefined, root = ROOT): TenantContext {
-  if (!host) return { kind: 'platform' };
-  const h = host.toLowerCase().split(':')[0]!;
-  if (h === root) return { kind: 'platform' };
-  if (h.endsWith(`.${root}`)) {
-    const slug = h.slice(0, -(root.length + 1));
-    if (slug && slug !== 'www') return { kind: 'tenant', slug };
-  }
-  if (h.endsWith('.localhost')) {
-    const slug = h.slice(0, -'.localhost'.length);
-    if (slug && slug !== 'www') return { kind: 'tenant', slug };
-  }
+/**
+ * Resolve tenant from URL pathname.
+ * Pattern: /t/:slug[/...]
+ * - /t/korat         -> { kind: 'tenant', slug: 'korat', basePath: '/t/korat' }
+ * - /t/korat/app/x   -> { kind: 'tenant', slug: 'korat', basePath: '/t/korat' }
+ * - /signup          -> { kind: 'platform' }
+ */
+export function resolveTenantFromPath(pathname: string): TenantContext {
+  const m = pathname.match(/^\/t\/([a-z0-9][a-z0-9-]*[a-z0-9])(?:\/|$)/);
+  if (m) return { kind: 'tenant', slug: m[1]!, basePath: `/t/${m[1]}` };
   return { kind: 'platform' };
+}
+
+/** Build a URL for a tenant page. */
+export function tenantUrl(slug: string, subPath = '/'): string {
+  const clean = subPath.startsWith('/') ? subPath : `/${subPath}`;
+  return `/t/${slug}${clean === '/' ? '' : clean}`;
 }

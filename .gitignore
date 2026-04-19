@@ -21,3 +21,4 @@ tmp/
 bun.lockb
 # vite
 apps/app/dist
+.aws-secrets.txt

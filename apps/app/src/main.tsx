@@ -11,11 +11,12 @@ const queryClient = new QueryClient({
 
 const rootEl = document.getElementById('root')!;
 const tenantSlug = rootEl.dataset.tenantSlug ?? 'unknown';
+const basePath = rootEl.dataset.basePath ?? `/t/${tenantSlug}`;
 
 createRoot(rootEl).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <BrowserRouter basename={basePath}>
         <App tenantSlug={tenantSlug} />
       </BrowserRouter>
     </QueryClientProvider>
