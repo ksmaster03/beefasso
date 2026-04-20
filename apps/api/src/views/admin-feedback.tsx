@@ -75,9 +75,18 @@ export const renderAdminFeedback = (rows: FeedbackRow[], tasksStatus: { connecte
         )}
       </div>
 
+      <div id="toast" class="pointer-events-none fixed right-4 top-4 z-50 hidden rounded-lg px-4 py-2 text-sm font-medium shadow-lg" />
+
       <script
         dangerouslySetInnerHTML={{
           __html: `
+function toast(msg, ok = true) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'pointer-events-none fixed right-4 top-4 z-50 rounded-lg px-4 py-2 text-sm font-medium shadow-lg ' + (ok ? 'bg-green-600 text-white' : 'bg-red-600 text-white');
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 3500);
+}
 document.querySelectorAll('[data-status]').forEach(el => {
   el.addEventListener('change', async (e) => {
     const id = e.target.dataset.status;
@@ -85,7 +94,8 @@ document.querySelectorAll('[data-status]').forEach(el => {
     const r = await fetch('/api/feedback/admin/' + id, {
       method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ status }),
     });
-    if (!r.ok) alert('อัปเดตไม่สำเร็จ');
+    if (r.ok) toast('อัปเดตสถานะแล้ว');
+    else toast('อัปเดตไม่สำเร็จ', false);
   });
 });
 `,

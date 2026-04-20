@@ -4,6 +4,9 @@ import type { Context, MiddlewareHandler } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import type { SessionUser } from '@beefasso/shared';
 
+if (process.env.NODE_ENV === 'production' && !process.env.AUTH_SECRET) {
+  throw new Error('AUTH_SECRET env var is required in production');
+}
 const SECRET = new TextEncoder().encode(process.env.AUTH_SECRET ?? 'dev-secret-change-me');
 const COOKIE = 'bf_sess';
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days

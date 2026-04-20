@@ -58,12 +58,13 @@ export const renderSignup = () => (
           __html: `
 document.getElementById('f').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const btn = e.target.querySelector('button[type=submit]');
   const fd = new FormData(e.target);
   const data = Object.fromEntries(fd.entries());
   if (!data.nameEn) delete data.nameEn;
   const msg = document.getElementById('msg');
-  msg.textContent = 'กำลังส่ง...';
-  msg.className = 'text-sm text-slate-500';
+  btn.disabled = true; btn.textContent = 'กำลังส่ง...';
+  msg.textContent = ''; msg.className = 'text-sm';
   try {
     const r = await fetch('/api/tenants/signup', {
       method: 'POST',
@@ -82,10 +83,12 @@ document.getElementById('f').addEventListener('submit', async (e) => {
       };
       msg.textContent = errMap[j.error] || ('ผิดพลาด: ' + (j.error || 'ลองใหม่'));
       msg.className = 'rounded-md bg-red-50 p-3 text-sm text-red-700';
+      btn.disabled = false; btn.textContent = 'ส่งใบสมัคร';
     }
   } catch (err) {
     msg.textContent = 'เครือข่ายผิดพลาด';
     msg.className = 'rounded-md bg-red-50 p-3 text-sm text-red-700';
+    btn.disabled = false; btn.textContent = 'ส่งใบสมัคร';
   }
 });
 `,

@@ -48,7 +48,21 @@ type Env = { Variables: { tenant: TenantContext; product: Product } };
 const app = new Hono<Env>();
 
 app.use('*', logger());
-app.use('*', secureHeaders());
+app.use('*', secureHeaders({
+  contentSecurityPolicy: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'", "'unsafe-inline'"],
+    styleSrc: ["'self'", "'unsafe-inline'"],
+    imgSrc: ["'self'", 'data:', 'https:'],
+    connectSrc: ["'self'"],
+    fontSrc: ["'self'", 'data:'],
+    objectSrc: ["'none'"],
+    frameAncestors: ["'none'"],
+  },
+  xFrameOptions: 'DENY',
+  xContentTypeOptions: true,
+  referrerPolicy: 'strict-origin-when-cross-origin',
+}));
 app.use('*', trimTrailingSlash());
 
 // Serve built SPA assets + static photos + logos from apps/api/public.
@@ -224,7 +238,8 @@ app.notFound((c) => c.json({ error: 'not_found' }, 404));
 // Error
 app.onError((err, c) => {
   console.error(err);
-  return c.json({ error: 'internal_error', message: err.message }, 500);
+  const msg = process.env.NODE_ENV === 'production' ? 'เกิดข้อผิดพลาดภายในระบบ' : err.message;
+  return c.json({ error: 'internal_error', message: msg }, 500);
 });
 
 const port = Number(process.env.PORT ?? 3000);

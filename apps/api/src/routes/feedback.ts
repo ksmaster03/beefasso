@@ -71,7 +71,7 @@ async function notifyFeedback(row: any) {
       to: 'toptierdigitalth@gmail.com',
       subject: title,
       text: body,
-      html: `<p><strong>${title}</strong></p><pre style="white-space:pre-wrap;font-family:ui-sans-serif,system-ui">${escapeHtml(body)}</pre>`,
+      html: `<p><strong>${escapeHtml(title)}</strong></p><pre style="white-space:pre-wrap;font-family:ui-sans-serif,system-ui">${escapeHtml(body)}</pre>`,
     });
   } catch (e) {
     console.error('[feedback] email notify failed', e);

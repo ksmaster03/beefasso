@@ -75,6 +75,24 @@ export const users = pgTable('users', {
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 });
 
+export const auditLogs = pgTable(
+  'audit_logs',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    actorId: uuid().notNull().references(() => users.id, { onDelete: 'cascade' }),
+    action: text().notNull(),
+    targetId: text(),
+    targetType: text(),
+    meta: jsonb().notNull().default({}),
+    ip: text(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('audit_logs_actor_idx').on(t.actorId),
+    index('audit_logs_created_idx').on(t.createdAt),
+  ],
+);
+
 export const loginMethod = pgEnum('login_method', ['password', 'google']);
 
 export const loginLogs = pgTable(

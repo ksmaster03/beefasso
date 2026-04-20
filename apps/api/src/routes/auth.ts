@@ -17,11 +17,16 @@ import {
 import { sendMail } from '../lib/mail.ts';
 import { buildGoogleAuthUrl, exchangeGoogleCode, loginOrCreateGoogleUser } from '../lib/google-oauth.ts';
 import { recordLogin } from '../lib/login-log.ts';
+import { checkRateLimit } from '../lib/rate-limit.ts';
 
 export const authRoutes = new Hono();
 
 authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
+  const ip = c.req.header('cf-connecting-ip') ?? c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
   const { email, password } = c.req.valid('json');
+  if (!checkRateLimit(`login:ip:${ip}`, 20, 60_000) || !checkRateLimit(`login:email:${email}`, 10, 15 * 60_000)) {
+    return c.json({ error: 'too_many_requests', message: 'ลองใหม่อีกสักครู่' }, 429);
+  }
   const rows = await db.select().from(users).where(eq(users.email, email));
   const u = rows[0];
   if (!u || !(await verifyPassword(password, u.passwordHash))) {
@@ -90,6 +95,10 @@ authRoutes.get('/me', async (c) => {
 const forgotSchema = z.object({ email: z.string().email() });
 
 authRoutes.post('/forgot-password', zValidator('json', forgotSchema), async (c) => {
+  const ip = c.req.header('cf-connecting-ip') ?? c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  if (!checkRateLimit(`forgot:ip:${ip}`, 5, 60 * 60_000) || !checkRateLimit(`forgot:email:${c.req.valid('json').email}`, 3, 60 * 60_000)) {
+    return c.json({ ok: true, message: 'หากอีเมลนี้อยู่ในระบบ เราส่งลิงก์รีเซ็ตให้แล้ว' }); // silent drop
+  }
   const { email } = c.req.valid('json');
   const [u] = await db.select({ id: users.id, name: users.name }).from(users).where(eq(users.email, email));
 

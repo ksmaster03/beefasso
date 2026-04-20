@@ -5,6 +5,7 @@ import { withTenant, cattle, members } from '@beefasso/db';
 import { cattleCreateSchema, cattleUpdateSchema, type PedigreeNode } from '@beefasso/shared';
 import { requireTenantAuth } from '../lib/auth.ts';
 import { putObject, deleteObject, getObjectStream, cattlePhotoKey, S3_BUCKET } from '../lib/s3.ts';
+import { validateFileMagicBytes } from '../lib/validate-file.ts';
 
 export const cattleRoutes = new Hono();
 
@@ -177,8 +178,9 @@ cattleRoutes.post('/:id/photos', async (c) => {
 
   const ext = (file.name.split('.').pop() ?? 'jpg').toLowerCase();
   if (!['jpg', 'jpeg', 'png', 'webp'].includes(ext)) return c.json({ error: 'bad_type' }, 415);
-  const key = cattlePhotoKey(tenantId, id, ext);
   const buf = Buffer.from(await file.arrayBuffer());
+  if (!validateFileMagicBytes(buf, ext)) return c.json({ error: 'bad_type' }, 415);
+  const key = cattlePhotoKey(tenantId, id, ext);
   await putObject(key, buf, file.type || `image/${ext === 'jpg' ? 'jpeg' : ext}`);
 
   const updated = await withTenant(tenantId, async (tx) => {

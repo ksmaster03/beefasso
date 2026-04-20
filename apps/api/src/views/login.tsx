@@ -63,10 +63,11 @@ export const renderLogin = (opts: Opts = { googleEnabled: false, product: 'jungd
             __html: `
 document.getElementById('f').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const btn = e.target.querySelector('button[type=submit]');
   const data = Object.fromEntries(new FormData(e.target).entries());
   const msg = document.getElementById('msg');
-  msg.textContent = 'กำลังตรวจสอบ...';
-  msg.className = 'text-sm text-slate-500';
+  btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ...';
+  msg.textContent = ''; msg.className = 'text-sm';
   const r = await fetch('/api/auth/login', {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data),
   });
@@ -87,8 +88,10 @@ document.getElementById('f').addEventListener('submit', async (e) => {
       msg.className = 'rounded-md bg-yellow-50 p-3 text-sm text-yellow-700';
     }
   } else {
-    msg.textContent = j.error === 'invalid_credentials' ? 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' : 'ผิดพลาด';
+    const errMap = { invalid_credentials: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง', too_many_requests: 'ลองใหม่อีกสักครู่ (ลองบ่อยเกินไป)' };
+    msg.textContent = errMap[j.error] || 'เกิดข้อผิดพลาด กรุณาลองใหม่';
     msg.className = 'rounded-md bg-red-50 p-3 text-sm text-red-700';
+    btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
   }
 });
 `,

@@ -3,6 +3,7 @@ import { zValidator } from '@hono/zod-validator';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { db, withTenant, payments, members, feeConfigs, tenants } from '@beefasso/db';
 import { paymentCreateSchema, tenantSettingsSchema } from '@beefasso/shared';
+import { validateFileMagicBytes } from '../lib/validate-file.ts';
 import { requireTenantAuth } from '../lib/auth.ts';
 import { putObject, deleteObject, getObjectStream } from '../lib/s3.ts';
 import { promptPayQr, newRefCode } from '../lib/promptpay.ts';
@@ -131,8 +132,9 @@ paymentRoutes.post('/:id/slip', async (c) => {
 
   const ext = (file.name.split('.').pop() ?? 'jpg').toLowerCase();
   if (!['jpg', 'jpeg', 'png', 'webp', 'pdf'].includes(ext)) return c.json({ error: 'bad_type' }, 415);
-  const key = `${tenantId}/slips/${id}/${crypto.randomUUID()}.${ext}`;
   const buf = Buffer.from(await file.arrayBuffer());
+  if (!validateFileMagicBytes(buf, ext)) return c.json({ error: 'bad_type' }, 415);
+  const key = `${tenantId}/slips/${id}/${crypto.randomUUID()}.${ext}`;
   await putObject(key, buf, file.type || (ext === 'pdf' ? 'application/pdf' : `image/${ext === 'jpg' ? 'jpeg' : ext}`));
 
   const updated = await withTenant(tenantId, async (tx) => {

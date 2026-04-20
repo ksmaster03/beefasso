@@ -85,9 +85,18 @@ export const renderAdmin = (userName: string, pending: PendingTenant[]) => (
         )}
       </section>
 
+      <div id="toast" class="pointer-events-none fixed right-4 top-4 z-50 hidden rounded-lg px-4 py-2 text-sm font-medium shadow-lg" />
+
       <script
         dangerouslySetInnerHTML={{
           __html: `
+function toast(msg, ok = true) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'pointer-events-none fixed right-4 top-4 z-50 rounded-lg px-4 py-2 text-sm font-medium shadow-lg ' + (ok ? 'bg-green-600 text-white' : 'bg-red-600 text-white');
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 3500);
+}
 document.querySelectorAll('[data-approve]').forEach(btn => {
   btn.addEventListener('click', async () => {
     const id = btn.dataset.approve;
@@ -98,11 +107,12 @@ document.querySelectorAll('[data-approve]').forEach(btn => {
       const row = btn.closest('tr');
       row.style.opacity = '0.5';
       btn.textContent = 'อนุมัติแล้ว';
-      setTimeout(() => location.reload(), 800);
+      toast('อนุมัติเรียบร้อย');
+      setTimeout(() => location.reload(), 1200);
     } else {
       btn.disabled = false;
       btn.textContent = 'ลองใหม่';
-      alert('อนุมัติไม่สำเร็จ');
+      toast('อนุมัติไม่สำเร็จ', false);
     }
   });
 });

@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { requireSuperAdmin } from '../lib/auth.ts';
+import { recordAudit } from '../lib/audit-log.ts';
 import { getAutoApprove, setAutoApprove } from '../lib/platform-settings.ts';
 import { orgTypeSchema } from '@beefasso/shared';
 
@@ -23,13 +24,15 @@ adminSettingsRoutes.put(
   ),
   async (c) => {
     const { autoApprove } = c.req.valid('json');
-    await setAutoApprove({
+    const next = {
       association: !!autoApprove.association,
       cooperative: !!autoApprove.cooperative,
       enterprise: !!autoApprove.enterprise,
       group: !!autoApprove.group,
       other: !!autoApprove.other,
-    });
+    };
+    await setAutoApprove(next);
+    await recordAudit({ c, action: 'settings.auto_approve_change', meta: next });
     return c.json({ ok: true });
   },
 );

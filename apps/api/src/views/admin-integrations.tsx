@@ -91,7 +91,7 @@ if (form) {
       body: JSON.stringify({ taskListId: sel.value, taskListTitle: opt.dataset.title }),
     });
     if (r.ok) location.href = '/admin/integrations?tasks=saved';
-    else alert('บันทึกไม่สำเร็จ');
+    else { const t = document.createElement('div'); t.textContent = 'บันทึกไม่สำเร็จ'; t.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:50;background:#dc2626;color:#fff;padding:.5rem 1rem;border-radius:.5rem;font-size:.875rem'; document.body.appendChild(t); setTimeout(() => t.remove(), 3500); }
   });
 }
 const d = document.getElementById('disconnect');

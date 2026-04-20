@@ -6,6 +6,7 @@ import { tenantSignupSchema } from '@beefasso/shared';
 import { hashPassword } from '../lib/auth.ts';
 import { requireSuperAdmin } from '../lib/auth.ts';
 import { getAutoApprove } from '../lib/platform-settings.ts';
+import { recordAudit } from '../lib/audit-log.ts';
 
 export const tenantRoutes = new Hono();
 
@@ -47,7 +48,7 @@ tenantRoutes.post('/signup', zValidator('json', tenantSignupSchema), async (c) =
     await tx.insert(tenantUsers).values({ tenantId: t!.id, userId: u!.id, role: 'owner', active: true });
 
     // fee_configs has RLS policy keyed on app.tenant_id; scope this tx to the new tenant.
-    await tx.execute(sql.raw(`SET LOCAL app.tenant_id = '${t!.id}'`));
+    await tx.execute(sql`SELECT set_config('app.tenant_id', ${t!.id}, true)`);
     await tx.insert(feeConfigs).values([
       { tenantId: t!.id, code: 'annual', name: 'ค่าสมาชิกรายปี', amount: '500.00', interval: 'year' },
       { tenantId: t!.id, code: 'lifetime', name: 'ค่าสมาชิกตลอดชีพ', amount: '10000.00', interval: null },
@@ -88,6 +89,7 @@ tenantRoutes.post('/:id/approve', requireSuperAdmin, async (c) => {
     .where(and(eq(tenants.id, id), eq(tenants.status, 'pending')))
     .returning({ id: tenants.id, slug: tenants.slug });
   if (!t) return c.json({ error: 'not_found_or_not_pending' }, 404);
+  await recordAudit({ c, action: 'tenant.approve', targetId: t.id, targetType: 'tenant', meta: { slug: t.slug } });
   return c.json({ ok: true, tenant: t });
 });
 
