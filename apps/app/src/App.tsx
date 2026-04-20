@@ -41,10 +41,9 @@ export function App({ tenantSlug, tenantName }: { tenantSlug: string; tenantName
 
 function BrandCompact({ tenantName }: { tenantName: string }) {
   return (
-    <Link to="/" className="flex items-center gap-2">
-      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary-600 text-sm font-bold text-white">J</div>
-      <div>
-        <div className="text-sm font-semibold leading-tight text-slate-900">Jungdee</div>
+    <Link to="/" className="flex items-center gap-3">
+      <img src="/logos/jungdee.png" alt="JungDee" className="h-7 w-auto" />
+      <div className="min-w-0">
         <div className="truncate text-xs text-slate-500">{tenantName}</div>
       </div>
     </Link>
@@ -82,11 +81,11 @@ function Sidebar({ tenantSlug, tenantName }: { tenantSlug: string; tenantName: s
   );
   return (
     <div className="p-6">
-      <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary-600 text-sm font-bold text-white">J</div>
-        <div>
-          <div className="text-sm font-semibold leading-tight text-slate-900">{tenantName}</div>
-          <div className="font-mono text-xs text-slate-500">{tenantSlug}</div>
+      <div className="flex items-start gap-3">
+        <img src="/logos/jungdee.png" alt="JungDee" className="h-7 w-auto shrink-0" />
+        <div className="min-w-0">
+          <div className="truncate text-sm font-medium text-slate-900">{tenantName}</div>
+          <div className="truncate font-mono text-xs text-slate-500">{tenantSlug}</div>
         </div>
       </div>
       <nav className="mt-8 flex flex-col gap-1 text-sm">
@@ -97,6 +96,15 @@ function Sidebar({ tenantSlug, tenantName }: { tenantSlug: string; tenantName: s
         <NavItem to="/app/fees" label="ค่าธรรมเนียม" />
         <NavItem to="/app/settings" label="ตั้งค่า" />
       </nav>
+      <div className="mt-6 border-t border-slate-200 pt-4">
+        <a
+          href="https://cattlepro.growgenius.co.th"
+          className="flex items-center gap-2 rounded-md border border-accent-200 bg-accent-50 px-3 py-2 text-xs text-accent-700 hover:border-accent-500 hover:bg-accent-100"
+        >
+          <img src="/logos/cattlepro.png" alt="" className="h-5 w-auto" />
+          <span className="font-medium">ไปที่ Cattle Pro →</span>
+        </a>
+      </div>
     </div>
   );
 }

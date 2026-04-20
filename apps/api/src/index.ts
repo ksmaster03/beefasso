@@ -46,9 +46,10 @@ app.use('*', logger());
 app.use('*', secureHeaders());
 app.use('*', trimTrailingSlash());
 
-// Serve built SPA assets + static photos from apps/api/public.
+// Serve built SPA assets + static photos + logos from apps/api/public.
 app.use('/assets/*', serveStatic({ root: './public' }));
 app.use('/photos/*', serveStatic({ root: './public' }));
+app.use('/logos/*', serveStatic({ root: './public' }));
 
 // Resolve tenant from URL path (Jungdee) and product from Host header.
 app.use('*', async (c, next) => {

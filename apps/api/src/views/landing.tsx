@@ -13,26 +13,19 @@ export const renderPlatformLanding = () => (
 
 const Nav = () => (
   <header class="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
-    <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-      <a href="/" class="flex items-center gap-2">
-        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600 font-bold text-white">
-          J
-        </div>
-        <span class="text-lg font-semibold tracking-tight text-slate-900">Jungdee</span>
+    <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+      <a href="/" class="flex items-center">
+        <img src="/logos/jungdee.png" alt="JungDee" class="h-8 w-auto sm:h-9" />
       </a>
-      <nav class="hidden items-center gap-6 text-sm sm:flex">
-        <a href="#features" class="text-slate-600 hover:text-primary-600">ฟีเจอร์</a>
-        <a href="#gallery" class="text-slate-600 hover:text-primary-600">ตัวอย่าง</a>
-        <a
-          href="/login"
-          class="rounded-md border border-slate-300 px-3 py-1.5 font-medium text-slate-700 hover:border-primary-500 hover:text-primary-600"
-        >
+      <nav class="flex items-center gap-2 text-sm sm:gap-5">
+        <a href="#features" class="hidden text-slate-600 hover:text-primary-600 sm:inline">ฟีเจอร์</a>
+        <a href="https://cattlepro.growgenius.co.th" class="hidden items-center gap-1.5 rounded-md border border-accent-200 bg-accent-50 px-3 py-1.5 text-xs font-semibold text-accent-700 hover:border-accent-500 sm:inline-flex">
+          <span class="h-1.5 w-1.5 rounded-full bg-accent-500" /> สำหรับเจ้าของฟาร์ม: Cattle Pro →
+        </a>
+        <a href="/login" class="rounded-md border border-slate-300 px-3 py-1.5 font-medium text-slate-700 hover:border-primary-500 hover:text-primary-600">
           เข้าสู่ระบบ
         </a>
-        <a
-          href="/signup"
-          class="rounded-md bg-primary-600 px-4 py-1.5 font-semibold text-white hover:bg-primary-700"
-        >
+        <a href="/signup" class="hidden rounded-md bg-primary-600 px-4 py-1.5 font-semibold text-white hover:bg-primary-700 sm:inline-block">
           สมัครสมาคม
         </a>
       </nav>
@@ -278,8 +271,12 @@ const CTA = () => (
 const Footer = () => (
   <footer class="border-t border-slate-200 bg-white py-8">
     <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 text-xs text-slate-500 sm:flex-row">
-      <div>v0.0.1 — MVP · Jungdee by growgenius</div>
-      <div class="flex gap-4">
+      <div class="flex items-center gap-3">
+        <img src="/logos/jungdee.png" alt="JungDee" class="h-6 w-auto opacity-80" />
+        <span>v0.0.1 · by growgenius</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-4">
+        <a href="https://cattlepro.growgenius.co.th" class="font-medium text-accent-600 hover:text-accent-700">Cattle Pro →</a>
         <a href="/feedback" class="hover:text-primary-600">ส่งความคิดเห็น</a>
         <span>© 2026 Jungdee</span>
       </div>

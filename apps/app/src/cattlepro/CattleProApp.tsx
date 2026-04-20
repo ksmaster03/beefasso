@@ -50,12 +50,9 @@ export function CattleProApp({ farmSlug, farmName }: { farmSlug: string; farmNam
 
 function Brand({ farmName }: { farmName: string }) {
   return (
-    <Link to="/" className="flex items-center gap-2">
-      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent-600 text-sm font-bold text-white">C</div>
-      <div>
-        <div className="text-sm font-semibold leading-tight text-slate-900">
-          Cattle <span className="text-accent-600">Pro</span>
-        </div>
+    <Link to="/" className="flex items-center gap-3">
+      <img src="/logos/cattlepro.png" alt="Cattle Pro" className="h-7 w-auto" />
+      <div className="min-w-0">
         <div className="truncate text-xs text-slate-500">{farmName}</div>
       </div>
     </Link>
@@ -89,6 +86,15 @@ function Sidebar({ farmSlug, farmName }: { farmSlug: string; farmName: string })
             ))}
           </div>
         ))}
+        <div className="mt-6 border-t border-slate-200 pt-4">
+          <a
+            href="https://jungdee.growgenius.co.th"
+            className="flex items-center gap-2 rounded-md border border-primary-200 bg-primary-50 px-3 py-2 text-xs text-primary-700 hover:border-primary-500 hover:bg-primary-100"
+          >
+            <img src="/logos/jungdee.png" alt="" className="h-5 w-auto" />
+            <span className="font-medium">ไปที่ Jungdee →</span>
+          </a>
+        </div>
         <button
           type="button"
           onClick={async () => {
