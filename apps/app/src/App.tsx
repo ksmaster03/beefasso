@@ -9,12 +9,16 @@ import { FeesPage } from '@/pages/Fees.tsx';
 import { PaymentsPage } from '@/pages/Payments.tsx';
 import { PaymentDetailPage } from '@/pages/PaymentDetail.tsx';
 import { SettingsPage } from '@/pages/Settings.tsx';
+import { MobileShell } from '@/components/MobileShell.tsx';
 
 export function App({ tenantSlug, tenantName }: { tenantSlug: string; tenantName: string }) {
   return (
-    <div className="flex min-h-screen">
-      <Sidebar tenantSlug={tenantSlug} tenantName={tenantName} />
-      <main className="flex-1 p-8">
+    <MobileShell
+      accent="primary"
+      brand={<BrandCompact tenantName={tenantName} />}
+      sidebar={<Sidebar tenantSlug={tenantSlug} tenantName={tenantName} />}
+    >
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
         <Routes>
           <Route path="/" element={<TenantHome slug={tenantSlug} name={tenantName} />} />
           <Route path="/app" element={<DashboardPage />} />
@@ -30,8 +34,20 @@ export function App({ tenantSlug, tenantName }: { tenantSlug: string; tenantName
           <Route path="/app/settings" element={<SettingsPage />} />
           <Route path="*" element={<TenantHome slug={tenantSlug} name={tenantName} />} />
         </Routes>
-      </main>
-    </div>
+      </div>
+    </MobileShell>
+  );
+}
+
+function BrandCompact({ tenantName }: { tenantName: string }) {
+  return (
+    <Link to="/" className="flex items-center gap-2">
+      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary-600 text-sm font-bold text-white">J</div>
+      <div>
+        <div className="text-sm font-semibold leading-tight text-slate-900">Jungdee</div>
+        <div className="truncate text-xs text-slate-500">{tenantName}</div>
+      </div>
+    </Link>
   );
 }
 
@@ -39,21 +55,15 @@ function TenantHome({ slug, name }: { slug: string; name: string }) {
   return (
     <div>
       <p className="text-sm font-medium uppercase tracking-wider text-primary-600">สมาคม</p>
-      <h1 className="mt-1 text-3xl font-bold text-slate-900">{name}</h1>
-      <p className="mt-1 text-sm text-slate-500 font-mono">/{slug}</p>
+      <h1 className="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">{name}</h1>
+      <p className="mt-1 font-mono text-sm text-slate-500">/{slug}</p>
       <p className="mt-4 text-slate-600">หน้าแรกของสมาคม — เข้าสู่ระบบเพื่อจัดการ</p>
       <div className="mt-4 h-1 w-16 rounded bg-accent-500" />
-      <div className="mt-8 flex gap-3">
-        <Link
-          to="/app"
-          className="inline-flex items-center rounded-lg bg-primary-600 px-5 py-2 text-sm font-semibold text-white hover:bg-primary-700"
-        >
+      <div className="mt-8 flex flex-wrap gap-3">
+        <Link to="/app" className="inline-flex items-center rounded-lg bg-primary-600 px-5 py-2 text-sm font-semibold text-white hover:bg-primary-700">
           ไปที่ dashboard
         </Link>
-        <a
-          href="/login"
-          className="inline-flex items-center rounded-lg border border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-slate-700 hover:border-primary-500 hover:text-primary-600"
-        >
+        <a href="/login" className="inline-flex items-center rounded-lg border border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-slate-700 hover:border-primary-500 hover:text-primary-600">
           เข้าสู่ระบบ
         </a>
       </div>
@@ -64,16 +74,19 @@ function TenantHome({ slug, name }: { slug: string; name: string }) {
 function Sidebar({ tenantSlug, tenantName }: { tenantSlug: string; tenantName: string }) {
   const { pathname } = useLocation();
   const isAppSection = pathname.startsWith('/app');
-  if (!isAppSection) return null;
+  if (!isAppSection) return (
+    <div className="p-6">
+      <BrandCompact tenantName={tenantName} />
+      <p className="mt-6 text-xs text-slate-500">เข้าระบบเพื่อใช้เมนู</p>
+    </div>
+  );
   return (
-    <aside className="w-64 shrink-0 border-r border-slate-200 bg-white p-6">
+    <div className="p-6">
       <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary-600 text-sm font-bold text-white">
-          J
-        </div>
+        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary-600 text-sm font-bold text-white">J</div>
         <div>
           <div className="text-sm font-semibold leading-tight text-slate-900">{tenantName}</div>
-          <div className="text-xs text-slate-500 font-mono">{tenantSlug}</div>
+          <div className="font-mono text-xs text-slate-500">{tenantSlug}</div>
         </div>
       </div>
       <nav className="mt-8 flex flex-col gap-1 text-sm">
@@ -84,16 +97,13 @@ function Sidebar({ tenantSlug, tenantName }: { tenantSlug: string; tenantName: s
         <NavItem to="/app/fees" label="ค่าธรรมเนียม" />
         <NavItem to="/app/settings" label="ตั้งค่า" />
       </nav>
-    </aside>
+    </div>
   );
 }
 
 function NavItem({ to, label }: { to: string; label: string }) {
   return (
-    <Link
-      to={to}
-      className="rounded-md px-3 py-2 text-slate-700 transition hover:bg-primary-50 hover:text-primary-700"
-    >
+    <Link to={to} className="rounded-md px-3 py-2 text-slate-700 transition hover:bg-primary-50 hover:text-primary-700">
       {label}
     </Link>
   );

@@ -57,11 +57,27 @@ export const tenants = pgTable('tenants', {
 export const users = pgTable('users', {
   id: uuid().primaryKey().defaultRandom(),
   email: text().notNull().unique(),
-  passwordHash: text().notNull(),
+  // passwordHash becomes nullable so Google-only accounts work.
+  passwordHash: text(),
   name: text().notNull(),
   platformRole: platformRole().notNull().default('user'),
+  googleId: text().unique(),
+  avatarUrl: text(),
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 });
+
+export const passwordResetTokens = pgTable(
+  'password_reset_tokens',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: uuid().notNull().references(() => users.id, { onDelete: 'cascade' }),
+    tokenHash: text().notNull().unique(),
+    expiresAt: timestamp({ withTimezone: true }).notNull(),
+    usedAt: timestamp({ withTimezone: true }),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('prt_user').on(t.userId)],
+);
 
 export const tenantUsers = pgTable(
   'tenant_users',

@@ -12,8 +12,15 @@ export async function hashPassword(plain: string): Promise<string> {
   return bcrypt.hash(plain, 10);
 }
 
-export async function verifyPassword(plain: string, hash: string): Promise<boolean> {
+export async function verifyPassword(plain: string, hash: string | null): Promise<boolean> {
+  if (!hash) return false;
   return bcrypt.compare(plain, hash);
+}
+
+export function hashToken(token: string): string {
+  // Store a SHA-256 of the reset token so the raw token isn't at rest.
+  const hex = require('node:crypto').createHash('sha256').update(token).digest('hex');
+  return hex;
 }
 
 export async function signSession(user: SessionUser): Promise<string> {

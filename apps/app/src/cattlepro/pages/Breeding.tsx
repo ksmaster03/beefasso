@@ -50,7 +50,7 @@ export function Breeding() {
 
       {adding && <AddForm cattle={cats?.cattle ?? []} onDone={() => setAdding(false)} />}
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-white">
         {rows.length === 0 ? <EmptyState message="ยังไม่มีบันทึกการผสม" /> : (
           <table className="min-w-full text-sm">
             <thead className="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">

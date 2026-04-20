@@ -40,7 +40,7 @@ export function Milk() {
       {top?.top && top.top.length > 0 && (
         <section className="mt-6">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-accent-600">อันดับวัวให้นมสูงสุด 30 วัน</h3>
-          <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table className="min-w-full text-sm">
               <thead className="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
                 <tr><th className="px-4 py-2">#</th><th className="px-4 py-2">วัว</th><th className="px-4 py-2 text-right">รวม (kg)</th><th className="px-4 py-2 text-right">เฉลี่ย/ครั้ง</th><th className="px-4 py-2 text-right">ครั้ง</th></tr>
@@ -63,7 +63,7 @@ export function Milk() {
 
       <section className="mt-6">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500">บันทึกรีดนมล่าสุด</h3>
-        <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
           {rows.length === 0 ? <EmptyState message="ยังไม่มีบันทึก" /> : (
             <table className="min-w-full text-sm">
               <thead className="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">

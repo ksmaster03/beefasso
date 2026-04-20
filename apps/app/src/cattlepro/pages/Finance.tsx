@@ -44,7 +44,7 @@ export function Finance() {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
         {rows.length === 0 ? <EmptyState message="ยังไม่มีรายการการเงิน" /> : (
           <table className="min-w-full text-sm">
             <thead className="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">

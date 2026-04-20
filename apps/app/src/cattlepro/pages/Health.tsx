@@ -36,7 +36,7 @@ export function Health() {
       } />
       {adding && <AddForm cattle={cats?.cattle ?? []} onDone={() => setAdding(false)} />}
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-white">
         {rows.length === 0 ? (
           <EmptyState message="ยังไม่มีบันทึกสุขภาพ" />
         ) : (

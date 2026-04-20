@@ -16,6 +16,9 @@ import { renderTenantNotFound } from './views/not-found.tsx';
 import { renderCattleProLanding } from './views/cattlepro-landing.tsx';
 import { renderCattleProSignup } from './views/cattlepro-signup.tsx';
 import { renderCattleProAppEntry } from './views/cattlepro-app-entry.tsx';
+import { renderForgotPassword } from './views/forgot.tsx';
+import { renderResetPassword } from './views/reset.tsx';
+import { googleEnabled } from './lib/google-oauth.ts';
 import { authRoutes } from './routes/auth.ts';
 import { tenantRoutes } from './routes/tenant.ts';
 import { verifyRoutes } from './routes/verify.ts';
@@ -75,7 +78,12 @@ app.get('/signup', (c) => {
   if (product === 'cattlepro') return c.html(renderCattleProSignup());
   return c.html(renderSignup());
 });
-app.get('/login', (c) => c.html(renderLogin()));
+app.get('/login', (c) => c.html(renderLogin({ googleEnabled: googleEnabled(), product: c.get('product') })));
+app.get('/forgot-password', (c) => c.html(renderForgotPassword()));
+app.get('/reset-password', (c) => {
+  const token = c.req.query('token') ?? '';
+  return c.html(renderResetPassword(token));
+});
 app.get('/verify/:certNo', renderVerify);
 
 // ----- Cattle Pro in-app routes -----
