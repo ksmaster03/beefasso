@@ -3,9 +3,9 @@ import { logger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
 import { trimTrailingSlash } from 'hono/trailing-slash';
 import { serveStatic } from 'hono/bun';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { resolveTenantFromPath, resolveProductFromHost, type TenantContext, type Product } from '@beefasso/shared';
-import { db, tenants, farms } from '@beefasso/db';
+import { db, tenants, farms, users, tenantUsers, farmUsers } from '@beefasso/db';
 import { renderPlatformLanding } from './views/landing.tsx';
 import { renderTenantEntry } from './views/tenant-entry.tsx';
 import { renderVerify } from './views/verify.tsx';
@@ -32,14 +32,15 @@ import { farmRoutes } from './routes/farm.ts';
 import { feedbackRoutes } from './routes/feedback.ts';
 import { adminIntegrationRoutes } from './routes/admin-integrations.ts';
 import { adminSettingsRoutes } from './routes/admin-settings.ts';
+import { adminUsersRoutes } from './routes/admin-users.ts';
 import { renderFeedback } from './views/feedback.tsx';
 import { renderAdminFeedback } from './views/admin-feedback.tsx';
 import { renderAdminIntegrations } from './views/admin-integrations.tsx';
 import { renderAdminSettings } from './views/admin-settings.tsx';
+import { renderAdminUsers } from './views/admin-users.tsx';
 import { getTasksConfig, listTaskLists } from './lib/google-tasks.ts';
 import { getAutoApprove } from './lib/platform-settings.ts';
 import { feedback } from '@beefasso/db';
-import { desc } from 'drizzle-orm';
 import { getSession } from './lib/auth.ts';
 type Env = { Variables: { tenant: TenantContext; product: Product } };
 
@@ -81,6 +82,7 @@ app.route('/api/farm', farmRoutes);
 app.route('/api/feedback', feedbackRoutes);
 app.route('/api/admin/integrations', adminIntegrationRoutes);
 app.route('/api/admin/settings', adminSettingsRoutes);
+app.route('/api/admin/users', adminUsersRoutes);
 
 // ----- Public SSR pages (product-aware) -----
 app.get('/', (c) => {
@@ -124,6 +126,22 @@ app.get('/admin/settings', async (c) => {
   if (user.platformRole !== 'super_admin') return c.html('<p>Forbidden</p>', 403);
   const cfg = await getAutoApprove();
   return c.html(renderAdminSettings(cfg));
+});
+
+app.get('/admin/users', async (c) => {
+  const user = await getSession(c);
+  if (!user) return c.redirect('/login');
+  if (user.platformRole !== 'super_admin') return c.html('<p>Forbidden</p>', 403);
+  const allUsers = await db
+    .select({ id: users.id, email: users.email, name: users.name, platformRole: users.platformRole, googleId: users.googleId, avatarUrl: users.avatarUrl, createdAt: users.createdAt })
+    .from(users)
+    .orderBy(desc(users.createdAt));
+  const tenantLinks = await db.select({ userId: tenantUsers.userId, role: tenantUsers.role, slug: tenants.slug, nameTh: tenants.nameTh }).from(tenantUsers).innerJoin(tenants, eq(tenantUsers.tenantId, tenants.id));
+  const farmLinks = await db.select({ userId: farmUsers.userId, role: farmUsers.role, slug: farms.slug, nameTh: farms.nameTh }).from(farmUsers).innerJoin(farms, eq(farmUsers.farmId, farms.id));
+  const tenantByUser = new Map(tenantLinks.map((l) => [l.userId, l]));
+  const farmByUser = new Map(farmLinks.map((l) => [l.userId, l]));
+  const rows = allUsers.map((u) => ({ ...u, createdAt: u.createdAt.toISOString(), tenant: tenantByUser.get(u.id) ?? null, farm: farmByUser.get(u.id) ?? null }));
+  return c.html(renderAdminUsers(rows as any, user.userId));
 });
 
 app.get('/admin/integrations', async (c) => {
