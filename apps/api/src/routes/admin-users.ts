@@ -3,7 +3,7 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq, desc } from 'drizzle-orm';
 import { randomBytes } from 'node:crypto';
-import { db, users, tenantUsers, tenants, farmUsers, farms, passwordResetTokens } from '@beefasso/db';
+import { db, users, tenantUsers, tenants, farmUsers, farms, passwordResetTokens, loginLogs } from '@beefasso/db';
 import { requireSuperAdmin, hashToken } from '../lib/auth.ts';
 import { sendMail } from '../lib/mail.ts';
 import { getSession } from '../lib/auth.ts';
@@ -97,6 +97,17 @@ adminUsersRoutes.post('/:id/reset', requireSuperAdmin, async (c) => {
     text: `ตั้งรหัสผ่านใหม่: ${link} (หมดอายุใน 24 ชั่วโมง)`,
   });
   return c.json({ ok: true });
+});
+
+adminUsersRoutes.get('/:id/logs', requireSuperAdmin, async (c) => {
+  const id = c.req.param('id');
+  const rows = await db
+    .select()
+    .from(loginLogs)
+    .where(eq(loginLogs.userId, id))
+    .orderBy(desc(loginLogs.createdAt))
+    .limit(50);
+  return c.json({ logs: rows });
 });
 
 adminUsersRoutes.delete('/:id', requireSuperAdmin, async (c) => {

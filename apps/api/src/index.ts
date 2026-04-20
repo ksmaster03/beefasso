@@ -5,7 +5,7 @@ import { trimTrailingSlash } from 'hono/trailing-slash';
 import { serveStatic } from 'hono/bun';
 import { eq, desc } from 'drizzle-orm';
 import { resolveTenantFromPath, resolveProductFromHost, type TenantContext, type Product } from '@beefasso/shared';
-import { db, tenants, farms, users, tenantUsers, farmUsers } from '@beefasso/db';
+import { db, tenants, farms, users, tenantUsers, farmUsers, loginLogs } from '@beefasso/db';
 import { renderPlatformLanding } from './views/landing.tsx';
 import { renderTenantEntry } from './views/tenant-entry.tsx';
 import { renderVerify } from './views/verify.tsx';
@@ -38,6 +38,7 @@ import { renderAdminFeedback } from './views/admin-feedback.tsx';
 import { renderAdminIntegrations } from './views/admin-integrations.tsx';
 import { renderAdminSettings } from './views/admin-settings.tsx';
 import { renderAdminUsers } from './views/admin-users.tsx';
+import { renderAdminLoginLogs } from './views/admin-login-logs.tsx';
 import { getTasksConfig, listTaskLists } from './lib/google-tasks.ts';
 import { getAutoApprove } from './lib/platform-settings.ts';
 import { feedback } from '@beefasso/db';
@@ -133,15 +134,24 @@ app.get('/admin/users', async (c) => {
   if (!user) return c.redirect('/login');
   if (user.platformRole !== 'super_admin') return c.html('<p>Forbidden</p>', 403);
   const allUsers = await db
-    .select({ id: users.id, email: users.email, name: users.name, platformRole: users.platformRole, googleId: users.googleId, avatarUrl: users.avatarUrl, createdAt: users.createdAt })
+    .select({ id: users.id, email: users.email, name: users.name, platformRole: users.platformRole, googleId: users.googleId, avatarUrl: users.avatarUrl, lastLoginAt: users.lastLoginAt, createdAt: users.createdAt })
     .from(users)
     .orderBy(desc(users.createdAt));
   const tenantLinks = await db.select({ userId: tenantUsers.userId, role: tenantUsers.role, slug: tenants.slug, nameTh: tenants.nameTh }).from(tenantUsers).innerJoin(tenants, eq(tenantUsers.tenantId, tenants.id));
   const farmLinks = await db.select({ userId: farmUsers.userId, role: farmUsers.role, slug: farms.slug, nameTh: farms.nameTh }).from(farmUsers).innerJoin(farms, eq(farmUsers.farmId, farms.id));
   const tenantByUser = new Map(tenantLinks.map((l) => [l.userId, l]));
   const farmByUser = new Map(farmLinks.map((l) => [l.userId, l]));
-  const rows = allUsers.map((u) => ({ ...u, createdAt: u.createdAt.toISOString(), tenant: tenantByUser.get(u.id) ?? null, farm: farmByUser.get(u.id) ?? null }));
+  const rows = allUsers.map((u) => ({ ...u, createdAt: u.createdAt.toISOString(), lastLoginAt: u.lastLoginAt?.toISOString() ?? null, tenant: tenantByUser.get(u.id) ?? null, farm: farmByUser.get(u.id) ?? null }));
   return c.html(renderAdminUsers(rows as any, user.userId));
+});
+
+app.get('/admin/login-logs', async (c) => {
+  const user = await getSession(c);
+  if (!user) return c.redirect('/login');
+  if (user.platformRole !== 'super_admin') return c.html('<p>Forbidden</p>', 403);
+  const rows = await db.select().from(loginLogs).orderBy(desc(loginLogs.createdAt)).limit(200);
+  const data = rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }));
+  return c.html(renderAdminLoginLogs(data as any));
 });
 
 app.get('/admin/integrations', async (c) => {

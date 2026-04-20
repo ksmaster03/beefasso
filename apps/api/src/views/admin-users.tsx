@@ -7,6 +7,7 @@ type UserRow = {
   platformRole: 'super_admin' | 'user';
   googleId: string | null;
   avatarUrl: string | null;
+  lastLoginAt: string | null;
   createdAt: string;
   tenant: { slug: string; nameTh: string; role: string } | null;
   farm: { slug: string; nameTh: string; role: string } | null;
@@ -63,6 +64,7 @@ export const renderAdminUsers = (rows: UserRow[], currentUserId: string) => {
                   <th class="px-4 py-3">Role</th>
                   <th class="px-4 py-3">องค์กร (Jungdee)</th>
                   <th class="px-4 py-3">ฟาร์ม (Cattle Pro)</th>
+                  <th class="px-4 py-3">Login ล่าสุด</th>
                   <th class="px-4 py-3">สมัครเมื่อ</th>
                   <th class="px-4 py-3 text-right">การดำเนินการ</th>
                 </tr>
@@ -119,6 +121,11 @@ export const renderAdminUsers = (rows: UserRow[], currentUserId: string) => {
                       ) : (
                         <span class="text-slate-300">—</span>
                       )}
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-500">
+                      {u.lastLoginAt
+                        ? new Date(u.lastLoginAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })
+                        : <span class="text-slate-300">ยังไม่เคย</span>}
                     </td>
                     <td class="px-4 py-3 text-xs text-slate-500">
                       {new Date(u.createdAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}

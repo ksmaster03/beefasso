@@ -71,8 +71,31 @@ export const users = pgTable('users', {
   platformRole: platformRole().notNull().default('user'),
   googleId: text().unique(),
   avatarUrl: text(),
+  lastLoginAt: timestamp({ withTimezone: true }),
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 });
+
+export const loginMethod = pgEnum('login_method', ['password', 'google']);
+
+export const loginLogs = pgTable(
+  'login_logs',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: uuid().references(() => users.id, { onDelete: 'set null' }),
+    email: text().notNull(),
+    method: loginMethod().notNull(),
+    success: boolean().notNull(),
+    ip: text(),
+    userAgent: text(),
+    failReason: text(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('login_logs_user_idx').on(t.userId),
+    index('login_logs_created_idx').on(t.createdAt),
+    index('login_logs_email_idx').on(t.email),
+  ],
+);
 
 export const feedbackType = pgEnum('feedback_type', ['complaint', 'compliment', 'bug', 'suggestion']);
 export const feedbackStatus = pgEnum('feedback_status', ['new', 'reviewed', 'resolved', 'dismissed']);

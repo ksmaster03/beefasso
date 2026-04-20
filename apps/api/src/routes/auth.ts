@@ -16,6 +16,7 @@ import {
 } from '../lib/auth.ts';
 import { sendMail } from '../lib/mail.ts';
 import { buildGoogleAuthUrl, exchangeGoogleCode, loginOrCreateGoogleUser } from '../lib/google-oauth.ts';
+import { recordLogin } from '../lib/login-log.ts';
 
 export const authRoutes = new Hono();
 
@@ -24,6 +25,7 @@ authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
   const rows = await db.select().from(users).where(eq(users.email, email));
   const u = rows[0];
   if (!u || !(await verifyPassword(password, u.passwordHash))) {
+    await recordLogin({ c, userId: u?.id ?? null, email, method: 'password', success: false, failReason: !u ? 'user_not_found' : 'wrong_password' });
     return c.json({ error: 'invalid_credentials' }, 401);
   }
 
@@ -67,6 +69,7 @@ authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
     farmRole,
     farmSlug,
   };
+  await recordLogin({ c, userId: u.id, email, method: 'password', success: true });
   const token = await signSession(sess);
   setSessionCookie(c, token);
   return c.json({ ok: true, user: sess });
@@ -163,11 +166,13 @@ authRoutes.get('/google/callback', async (c) => {
     const host = c.req.header('host') ?? '';
     const profile = await exchangeGoogleCode(host, code, verifier);
     const { sessionUser } = await loginOrCreateGoogleUser(profile);
+    await recordLogin({ c, userId: sessionUser.userId, email: sessionUser.email, method: 'google', success: true });
     const token = await signSession(sessionUser);
     setSessionCookie(c, token);
     return c.redirect(redirect);
   } catch (err: any) {
     console.error('google callback error', err);
+    await recordLogin({ c, userId: null, email: 'unknown', method: 'google', success: false, failReason: err.message }).catch(() => {});
     return c.html(`<p>เข้าสู่ระบบด้วย Google ไม่สำเร็จ: ${err.message} <a href="/login">ลองใหม่</a></p>`, 500);
   }
 });

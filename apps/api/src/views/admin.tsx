@@ -33,6 +33,7 @@ export const renderAdmin = (userName: string, pending: PendingTenant[]) => (
       <nav class="mt-6 flex flex-wrap gap-2 text-xs">
         <a href="/admin" class="rounded-full bg-slate-900 px-3 py-1 text-white">องค์กรรออนุมัติ</a>
         <a href="/admin/users" class="rounded-full border border-slate-300 bg-white px-3 py-1 text-slate-700 hover:border-primary-500 hover:text-primary-600">จัดการ Users</a>
+        <a href="/admin/login-logs" class="rounded-full border border-slate-300 bg-white px-3 py-1 text-slate-700 hover:border-primary-500 hover:text-primary-600">Login Logs</a>
         <a href="/admin/feedback" class="rounded-full border border-slate-300 bg-white px-3 py-1 text-slate-700 hover:border-primary-500 hover:text-primary-600">Feedback inbox</a>
         <a href="/admin/settings" class="rounded-full border border-slate-300 bg-white px-3 py-1 text-slate-700 hover:border-primary-500 hover:text-primary-600">Settings (Auto-approve)</a>
         <a href="/admin/integrations" class="rounded-full border border-slate-300 bg-white px-3 py-1 text-slate-700 hover:border-primary-500 hover:text-primary-600">Integrations (Google Tasks)</a>

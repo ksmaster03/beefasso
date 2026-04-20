@@ -57,6 +57,7 @@ jobs:
               "sudo -u ec2-user git reset --hard origin/main",
               "sudo -u ec2-user /usr/local/bin/bun install --frozen-lockfile",
               "sudo -u ec2-user /usr/local/bin/bun run build",
+              "DB=$(grep ^DATABASE_URL /opt/beefasso/apps/api/.env | cut -d= -f2-) && psql \"$DB\" -c \"ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ\" && psql \"$DB\" -c \"DO \\$\\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'login_method') THEN CREATE TYPE login_method AS ENUM ('password','google'); END IF; END \\$\\$\" && psql \"$DB\" -c \"CREATE TABLE IF NOT EXISTS login_logs (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID REFERENCES users(id) ON DELETE SET NULL, email TEXT NOT NULL, method login_method NOT NULL, success BOOLEAN NOT NULL, ip TEXT, user_agent TEXT, fail_reason TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())\" && psql \"$DB\" -c \"CREATE INDEX IF NOT EXISTS login_logs_user_idx ON login_logs(user_id)\" && psql \"$DB\" -c \"CREATE INDEX IF NOT EXISTS login_logs_created_idx ON login_logs(created_at DESC)\" && psql \"$DB\" -c \"CREATE INDEX IF NOT EXISTS login_logs_email_idx ON login_logs(email)\" && echo migration_ok",
               "systemctl restart beefasso",
               "sleep 3",
               "systemctl is-active beefasso",
