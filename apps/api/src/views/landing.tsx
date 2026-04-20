@@ -60,11 +60,11 @@ const Hero = () => (
   100%      { opacity: 0; transform: scale(1.05); }
 }
 .jd-hero-slide {
-  animation: jd-hero-fade ${HERO_SLIDES.length * 5}s ease-in-out infinite;
+  animation: jd-hero-fade ${HERO_SLIDES.length * 9}s ease-in-out infinite;
   opacity: 0;
 }
 ${HERO_SLIDES.map(
-  (_, i) => `.jd-hero-slide:nth-child(${i + 1}) { animation-delay: ${i * 5}s; }`,
+  (_, i) => `.jd-hero-slide:nth-child(${i + 1}) { animation-delay: ${i * 9}s; }`,
 ).join('\n')}
 .jd-dot.active { background: #1d4ed8; width: 24px; }
 `,
@@ -77,10 +77,10 @@ ${HERO_SLIDES.map(
           src={src}
           alt=""
           loading="lazy"
-          class="jd-hero-slide absolute inset-0 h-full w-full object-cover object-right"
+          class="jd-hero-slide absolute inset-0 h-full w-full object-cover object-center"
         />
       ))}
-      <div class="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-white/40" />
+      <div class="absolute inset-0 bg-gradient-to-r from-white/95 via-white/70 to-white/30" />
     </div>
 
     <div class="absolute bottom-4 right-4 z-10 flex gap-1.5">
@@ -99,7 +99,7 @@ ${HERO_SLIDES.map(
         __html: `
 (function(){
   const TOTAL = ${HERO_SLIDES.length};
-  const SEG = 5000;
+  const SEG = 9000;
   const dots = document.querySelectorAll('[data-hero-dot]');
   const tick = () => {
     const idx = Math.floor((Date.now() / SEG) % TOTAL);
