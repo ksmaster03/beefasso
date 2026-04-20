@@ -43,8 +43,8 @@ const Nav = () => (
 const Hero = () => (
   <section class="relative overflow-hidden">
     <div class="absolute inset-0">
-      <img src="/photos/hero.jpg" alt="" class="h-full w-full object-cover" />
-      <div class="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-white/30" />
+      <img src="/photos/hero-black.webp" alt="" class="h-full w-full object-cover object-right" />
+      <div class="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-white/40" />
     </div>
     <div class="relative mx-auto grid max-w-6xl gap-10 px-6 py-20 sm:py-28">
       <div class="max-w-2xl">
