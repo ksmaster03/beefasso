@@ -15,7 +15,7 @@ const Nav = () => (
   <header class="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
     <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
       <a href="/" class="flex items-center">
-        <img src="/logos/jungdee.png" alt="JungDee" class="h-8 w-auto sm:h-9" />
+        <img src="/logos/jungdee.png" alt="JungDee" class="h-20 w-auto sm:h-24" />
       </a>
       <nav class="flex items-center gap-2 text-sm sm:gap-5">
         <a href="#features" class="hidden text-slate-600 hover:text-primary-600 sm:inline">ฟีเจอร์</a>
@@ -272,7 +272,7 @@ const Footer = () => (
   <footer class="border-t border-slate-200 bg-white py-8">
     <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 text-xs text-slate-500 sm:flex-row">
       <div class="flex items-center gap-3">
-        <img src="/logos/jungdee.png" alt="JungDee" class="h-6 w-auto opacity-80" />
+        <img src="/logos/jungdee.png" alt="JungDee" class="h-16 w-auto opacity-80" />
         <span>v0.0.1 · by growgenius</span>
       </div>
       <div class="flex flex-wrap items-center gap-4">
