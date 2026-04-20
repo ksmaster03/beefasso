@@ -40,12 +40,78 @@ const Nav = () => (
   </header>
 );
 
+const HERO_SLIDES = [
+  '/photos/hero-black.webp',
+  '/photos/hero.jpg',
+  '/photos/hero-2.jpg',
+  '/photos/pedigree.jpg',
+  '/photos/gallery-5.jpg',
+  '/photos/contest.jpg',
+];
+
 const Hero = () => (
   <section class="relative overflow-hidden">
+    <style
+      dangerouslySetInnerHTML={{
+        __html: `
+@keyframes jd-hero-fade {
+  0%, 14%   { opacity: 1; transform: scale(1.02); }
+  17%, 97%  { opacity: 0; }
+  100%      { opacity: 0; transform: scale(1.05); }
+}
+.jd-hero-slide {
+  animation: jd-hero-fade ${HERO_SLIDES.length * 5}s ease-in-out infinite;
+  opacity: 0;
+}
+${HERO_SLIDES.map(
+  (_, i) => `.jd-hero-slide:nth-child(${i + 1}) { animation-delay: ${i * 5}s; }`,
+).join('\n')}
+.jd-dot.active { background: #1d4ed8; width: 24px; }
+`,
+      }}
+    />
+
     <div class="absolute inset-0">
-      <img src="/photos/hero-black.webp" alt="" class="h-full w-full object-cover object-right" />
+      {HERO_SLIDES.map((src) => (
+        <img
+          src={src}
+          alt=""
+          loading="lazy"
+          class="jd-hero-slide absolute inset-0 h-full w-full object-cover object-right"
+        />
+      ))}
       <div class="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-white/40" />
     </div>
+
+    <div class="absolute bottom-4 right-4 z-10 flex gap-1.5">
+      {HERO_SLIDES.map((_, i) => (
+        <button
+          type="button"
+          data-hero-dot={i}
+          aria-label={`สไลด์ ${i + 1}`}
+          class="jd-dot h-1.5 w-1.5 rounded-full bg-slate-300 transition-all duration-300"
+        />
+      ))}
+    </div>
+
+    <script
+      dangerouslySetInnerHTML={{
+        __html: `
+(function(){
+  const TOTAL = ${HERO_SLIDES.length};
+  const SEG = 5000;
+  const dots = document.querySelectorAll('[data-hero-dot]');
+  const tick = () => {
+    const idx = Math.floor((Date.now() / SEG) % TOTAL);
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  };
+  tick();
+  setInterval(tick, 500);
+})();
+`,
+      }}
+    />
+
     <div class="relative mx-auto grid max-w-6xl gap-10 px-6 py-20 sm:py-28">
       <div class="max-w-2xl">
         <p class="inline-flex items-center gap-2 rounded-full bg-accent-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-accent-600">
