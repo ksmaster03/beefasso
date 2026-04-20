@@ -11,7 +11,9 @@ import { PaymentDetailPage } from '@/pages/PaymentDetail.tsx';
 import { SettingsPage } from '@/pages/Settings.tsx';
 import { MobileShell } from '@/components/MobileShell.tsx';
 
-export function App({ tenantSlug, tenantName }: { tenantSlug: string; tenantName: string }) {
+import { orgTypeLabel, type OrgType } from '@beefasso/shared';
+
+export function App({ tenantSlug, tenantName, orgType }: { tenantSlug: string; tenantName: string; orgType: OrgType }) {
   return (
     <MobileShell
       accent="primary"
@@ -20,7 +22,7 @@ export function App({ tenantSlug, tenantName }: { tenantSlug: string; tenantName
     >
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
         <Routes>
-          <Route path="/" element={<TenantHome slug={tenantSlug} name={tenantName} />} />
+          <Route path="/" element={<TenantHome slug={tenantSlug} name={tenantName} orgType={orgType} />} />
           <Route path="/app" element={<DashboardPage />} />
           <Route path="/app/members" element={<MembersPage />} />
           <Route path="/app/members/new" element={<MemberCreatePage />} />
@@ -32,7 +34,7 @@ export function App({ tenantSlug, tenantName }: { tenantSlug: string; tenantName
           <Route path="/app/payments" element={<PaymentsPage />} />
           <Route path="/app/payments/:id" element={<PaymentDetailPage />} />
           <Route path="/app/settings" element={<SettingsPage />} />
-          <Route path="*" element={<TenantHome slug={tenantSlug} name={tenantName} />} />
+          <Route path="*" element={<TenantHome slug={tenantSlug} name={tenantName} orgType={orgType} />} />
         </Routes>
       </div>
     </MobileShell>
@@ -50,10 +52,10 @@ function BrandCompact({ tenantName }: { tenantName: string }) {
   );
 }
 
-function TenantHome({ slug, name }: { slug: string; name: string }) {
+function TenantHome({ slug, name, orgType }: { slug: string; name: string; orgType: OrgType }) {
   return (
     <div>
-      <p className="text-sm font-medium uppercase tracking-wider text-primary-600">สมาคม</p>
+      <p className="text-sm font-medium uppercase tracking-wider text-primary-600">{orgTypeLabel(orgType)}</p>
       <h1 className="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">{name}</h1>
       <p className="mt-1 font-mono text-sm text-slate-500">/{slug}</p>
       <p className="mt-4 text-slate-600">หน้าแรกของสมาคม — เข้าสู่ระบบเพื่อจัดการ</p>

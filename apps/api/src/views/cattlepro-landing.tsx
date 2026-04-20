@@ -28,7 +28,7 @@ const Nav = () => (
       <nav class="flex items-center gap-2 text-sm sm:gap-5">
         <a href="#modules" class="hidden text-slate-600 hover:text-accent-600 sm:inline">โมดูล</a>
         <a href="https://jungdee.growgenius.co.th" class="hidden items-center gap-1.5 rounded-md border border-primary-200 bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-700 hover:border-primary-500 sm:inline-flex">
-          <span class="h-1.5 w-1.5 rounded-full bg-primary-500" /> สำหรับสมาคม: Jungdee →
+          <span class="h-1.5 w-1.5 rounded-full bg-primary-500" /> สำหรับสมาคม/กลุ่ม/วิสาหกิจ: Jungdee →
         </a>
         <a href="/login" class="rounded-md border border-slate-300 px-3 py-1.5 font-medium text-slate-700 hover:border-accent-500 hover:text-accent-600">
           เข้าสู่ระบบ
@@ -161,6 +161,8 @@ const Benefit = ({ title, desc }: { title: string; desc: string }) => (
     <p class="mt-2 text-slate-600">{desc}</p>
   </div>
 );
+// Note: cross-link text updated to mention สมาคม/กลุ่ม/วิสาหกิจ so farmers know
+// Jungdee isn't only for formal associations.
 
 const CTA = () => (
   <section class="relative overflow-hidden bg-accent-700 py-16">

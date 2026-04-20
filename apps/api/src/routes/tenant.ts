@@ -24,7 +24,13 @@ tenantRoutes.post('/signup', zValidator('json', tenantSignupSchema), async (c) =
   await db.transaction(async (tx) => {
     const [t] = await tx
       .insert(tenants)
-      .values({ slug: input.slug, nameTh: input.nameTh, nameEn: input.nameEn, status: 'pending' })
+      .values({
+        slug: input.slug,
+        nameTh: input.nameTh,
+        nameEn: input.nameEn,
+        orgType: input.orgType,
+        status: 'pending',
+      })
       .returning({ id: tenants.id });
     const [u] = await tx
       .insert(users)
@@ -57,6 +63,7 @@ tenantRoutes.get('/pending', requireSuperAdmin, async (c) => {
       slug: tenants.slug,
       nameTh: tenants.nameTh,
       nameEn: tenants.nameEn,
+      orgType: tenants.orgType,
       createdAt: tenants.createdAt,
     })
     .from(tenants)
@@ -81,7 +88,7 @@ tenantRoutes.post('/:id/approve', requireSuperAdmin, async (c) => {
 tenantRoutes.get('/by-slug/:slug', async (c) => {
   const slug = c.req.param('slug');
   const [t] = await db
-    .select({ id: tenants.id, slug: tenants.slug, nameTh: tenants.nameTh, nameEn: tenants.nameEn, status: tenants.status })
+    .select({ id: tenants.id, slug: tenants.slug, nameTh: tenants.nameTh, nameEn: tenants.nameEn, orgType: tenants.orgType, status: tenants.status })
     .from(tenants)
     .where(eq(tenants.slug, slug));
   if (!t) return c.json({ error: 'not_found' }, 404);

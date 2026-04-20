@@ -23,6 +23,7 @@ const Tree =
       <App
         tenantSlug={rootEl.dataset.tenantSlug ?? 'unknown'}
         tenantName={rootEl.dataset.tenantName ?? rootEl.dataset.tenantSlug ?? 'unknown'}
+        orgType={(rootEl.dataset.tenantOrgType as any) ?? 'association'}
       />
     </BrowserRouter>
   );

@@ -157,7 +157,7 @@ app.get('/admin', async (c) => {
   if (!user) return c.redirect('/login');
   if (user.platformRole !== 'super_admin') return c.html('<p>Forbidden</p>', 403);
   const rows = await db
-    .select({ id: tenants.id, slug: tenants.slug, nameTh: tenants.nameTh, nameEn: tenants.nameEn, createdAt: tenants.createdAt })
+    .select({ id: tenants.id, slug: tenants.slug, nameTh: tenants.nameTh, nameEn: tenants.nameEn, orgType: tenants.orgType, createdAt: tenants.createdAt })
     .from(tenants)
     .where(eq(tenants.status, 'pending'));
   const pending = rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }));
@@ -169,13 +169,13 @@ app.get('/t/:slug', async (c) => {
   const slug = c.req.param('slug');
   const [t] = await db.select().from(tenants).where(eq(tenants.slug, slug));
   if (!t || t.status !== 'active') return c.html(renderTenantNotFound(slug), 404);
-  return c.html(renderTenantEntry(t.slug, t.nameTh));
+  return c.html(renderTenantEntry(t.slug, t.nameTh, t.orgType));
 });
 app.get('/t/:slug/app/*', async (c) => {
   const slug = c.req.param('slug');
   const [t] = await db.select().from(tenants).where(eq(tenants.slug, slug));
   if (!t || t.status !== 'active') return c.html(renderTenantNotFound(slug), 404);
-  return c.html(renderTenantEntry(t.slug, t.nameTh));
+  return c.html(renderTenantEntry(t.slug, t.nameTh, t.orgType));
 });
 
 // 404

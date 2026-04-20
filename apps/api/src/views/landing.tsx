@@ -26,7 +26,7 @@ const Nav = () => (
           เข้าสู่ระบบ
         </a>
         <a href="/signup" class="hidden rounded-md bg-primary-600 px-4 py-1.5 font-semibold text-white hover:bg-primary-700 sm:inline-block">
-          สมัครสมาคม
+          สมัครใช้งาน
         </a>
       </nav>
     </div>
@@ -134,7 +134,7 @@ ${HERO_SLIDES.map(
           </a>
         </div>
         <dl class="mt-12 grid grid-cols-3 gap-6 border-t border-slate-200 pt-6 text-sm">
-          <Stat value="10K+" label="สมาชิก/สมาคม" />
+          <Stat value="10K+" label="สมาชิก/องค์กร" />
           <Stat value="4 generations" label="สายพันธุ์ประวัติ" />
           <Stat value="QR Verify" label="ใบเพ็ดดีกรี" />
         </dl>
@@ -246,16 +246,16 @@ const CTA = () => (
       <img src="/photos/hero-2.jpg" alt="" class="h-full w-full object-cover" />
     </div>
     <div class="relative mx-auto max-w-4xl px-6 text-center">
-      <h2 class="text-3xl font-bold text-white sm:text-4xl">พร้อมให้สมาคมของท่านเริ่มใช้งาน</h2>
+      <h2 class="text-3xl font-bold text-white sm:text-4xl">พร้อมให้องค์กรของท่านเริ่มใช้งาน</h2>
       <p class="mt-3 text-lg text-primary-100">
-        สมัครภายใน 5 นาที ได้ URL สมาคมของตัวเอง อนุมัติโดยทีมงาน 1-2 วันทำการ
+        สมัครภายใน 5 นาที ได้ URL เฉพาะองค์กร อนุมัติโดยทีมงาน 1-2 วันทำการ
       </p>
       <div class="mt-8 flex flex-wrap justify-center gap-3">
         <a
           href="/signup"
           class="inline-flex items-center rounded-lg bg-white px-6 py-3 text-sm font-semibold text-primary-700 shadow hover:bg-primary-50"
         >
-          สมัครสมาคม
+          สมัครใช้งาน
         </a>
         <a
           href="/login"

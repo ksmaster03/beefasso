@@ -22,6 +22,13 @@ import { sql } from 'drizzle-orm';
 // ============ enums ============
 
 export const tenantStatus = pgEnum('tenant_status', ['pending', 'active', 'suspended']);
+export const organizationType = pgEnum('organization_type', [
+  'association',  // สมาคม
+  'cooperative',  // สหกรณ์
+  'enterprise',   // วิสาหกิจชุมชน
+  'group',        // กลุ่มเลี้ยงวัว
+  'other',        // องค์กรอื่น
+]);
 export const platformRole = pgEnum('platform_role', ['super_admin', 'user']);
 export const tenantRole = pgEnum('tenant_role', ['owner', 'admin', 'staff', 'member']);
 export const memberType = pgEnum('member_type', ['annual', 'lifetime', 'honorary']);
@@ -47,6 +54,7 @@ export const tenants = pgTable('tenants', {
   nameTh: text().notNull(),
   nameEn: text(),
   logoUrl: text(),
+  orgType: organizationType().notNull().default('association'),
   status: tenantStatus().notNull().default('pending'),
   plan: text().notNull().default('free'),
   settings: jsonb().notNull().default({}),

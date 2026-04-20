@@ -1,17 +1,34 @@
 import { Layout } from './layout.tsx';
+import { ORG_TYPE_OPTIONS } from '@beefasso/shared';
 
 export const renderSignup = () => (
-  <Layout title="สมัครสมาคม — Jungdee">
-    <main class="mx-auto max-w-2xl px-6 py-12">
+  <Layout title="สมัครใช้งาน Jungdee">
+    <main class="mx-auto max-w-2xl px-4 py-12 sm:px-6">
       <a href="/" class="text-sm text-slate-500 hover:text-primary-600">← กลับหน้าแรก</a>
-      <h1 class="mt-4 text-3xl font-bold text-slate-900">สมัครสมาคมใช้งาน Jungdee</h1>
+      <h1 class="mt-4 text-2xl font-bold text-slate-900 sm:text-3xl">สมัครใช้งาน Jungdee</h1>
       <p class="mt-2 text-slate-600">
-        กรอกข้อมูลสมาคมและข้อมูลผู้ดูแล ทีมงานจะตรวจสอบและอนุมัติภายใน 1-2 วันทำการ
+        รองรับทั้ง <strong>สมาคม วิสาหกิจชุมชน สหกรณ์</strong> และ <strong>กลุ่มเลี้ยงวัว</strong> —
+        กรอกข้อมูลองค์กรและผู้ดูแล ทีมงานจะตรวจสอบและอนุมัติภายใน 1-2 วันทำการ
       </p>
 
-      <form id="f" class="mt-8 space-y-5 rounded-xl border border-slate-200 bg-white p-6">
-        <Field name="nameTh" label="ชื่อสมาคม (ภาษาไทย)" required />
-        <Field name="nameEn" label="ชื่อสมาคม (English)" />
+      <form id="f" class="mt-8 space-y-5 rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
+        <fieldset>
+          <legend class="text-sm font-medium text-slate-700">
+            ประเภทองค์กร <span class="text-accent-500">*</span>
+          </legend>
+          <div class="mt-3 grid gap-2 sm:grid-cols-2">
+            {ORG_TYPE_OPTIONS.map((o, i) => (
+              <label class="relative cursor-pointer rounded-lg border border-slate-300 bg-white p-3 text-sm transition has-[:checked]:border-primary-500 has-[:checked]:bg-primary-50">
+                <input type="radio" name="orgType" value={o.value} required checked={i === 0} class="peer absolute inset-0 cursor-pointer opacity-0" />
+                <div class="font-medium text-slate-900">{o.label}</div>
+                <div class="mt-0.5 text-xs text-slate-500">{o.hint}</div>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <Field name="nameTh" label="ชื่อองค์กร (ภาษาไทย)" required />
+        <Field name="nameEn" label="ชื่อองค์กร (English)" />
         <Field
           name="slug"
           label="URL slug (อังกฤษ ตัวเล็ก)"
@@ -25,14 +42,7 @@ export const renderSignup = () => (
         <Field name="contactName" label="ชื่อผู้ติดต่อ/ผู้ดูแล" required />
         <Field name="contactEmail" label="อีเมล" type="email" required />
         <Field name="contactPhone" label="เบอร์โทรศัพท์" required />
-        <Field
-          name="password"
-          label="รหัสผ่าน"
-          type="password"
-          hint="อย่างน้อย 8 ตัวอักษร"
-          minlength="8"
-          required
-        />
+        <Field name="password" label="รหัสผ่าน" type="password" hint="อย่างน้อย 8 ตัวอักษร" minlength="8" required />
 
         <div id="msg" class="text-sm" />
         <button

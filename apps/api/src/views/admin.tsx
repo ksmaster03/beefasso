@@ -1,10 +1,13 @@
 import { Layout } from './layout.tsx';
 
+import { orgTypeLabel, type OrgType } from '@beefasso/shared';
+
 type PendingTenant = {
   id: string;
   slug: string;
   nameTh: string;
   nameEn: string | null;
+  orgType: OrgType;
   createdAt: string;
 };
 
@@ -14,7 +17,7 @@ export const renderAdmin = (userName: string, pending: PendingTenant[]) => (
       <header class="flex items-center justify-between">
         <div>
           <p class="text-sm text-slate-500">Platform Admin</p>
-          <h1 class="text-2xl font-bold text-slate-900">สมาคมที่รออนุมัติ</h1>
+          <h1 class="text-2xl font-bold text-slate-900">องค์กรที่รออนุมัติ</h1>
         </div>
         <div class="text-right text-sm">
           <div class="text-slate-700">{userName}</div>
@@ -28,7 +31,7 @@ export const renderAdmin = (userName: string, pending: PendingTenant[]) => (
       </header>
 
       <nav class="mt-6 flex flex-wrap gap-2 text-xs">
-        <a href="/admin" class="rounded-full bg-slate-900 px-3 py-1 text-white">สมาคมรออนุมัติ</a>
+        <a href="/admin" class="rounded-full bg-slate-900 px-3 py-1 text-white">องค์กรรออนุมัติ</a>
         <a href="/admin/feedback" class="rounded-full border border-slate-300 bg-white px-3 py-1 text-slate-700 hover:border-primary-500 hover:text-primary-600">Feedback inbox</a>
         <a href="/admin/integrations" class="rounded-full border border-slate-300 bg-white px-3 py-1 text-slate-700 hover:border-primary-500 hover:text-primary-600">Integrations (Google Tasks)</a>
       </nav>
@@ -36,7 +39,7 @@ export const renderAdmin = (userName: string, pending: PendingTenant[]) => (
       <section class="mt-8">
         {pending.length === 0 ? (
           <div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
-            ไม่มีสมาคมรออนุมัติ
+            ไม่มีองค์กรรออนุมัติ
           </div>
         ) : (
           <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -44,7 +47,7 @@ export const renderAdmin = (userName: string, pending: PendingTenant[]) => (
               <thead class="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
                 <tr>
                   <th class="px-4 py-3">slug</th>
-                  <th class="px-4 py-3">ชื่อสมาคม</th>
+                  <th class="px-4 py-3">ชื่อ / ประเภท</th>
                   <th class="px-4 py-3">สมัครเมื่อ</th>
                   <th class="px-4 py-3 text-right">การดำเนินการ</th>
                 </tr>
@@ -55,7 +58,10 @@ export const renderAdmin = (userName: string, pending: PendingTenant[]) => (
                     <td class="px-4 py-3 font-mono text-xs text-primary-700">{t.slug}</td>
                     <td class="px-4 py-3">
                       <div class="font-medium text-slate-900">{t.nameTh}</div>
-                      {t.nameEn && <div class="text-xs text-slate-500">{t.nameEn}</div>}
+                      <div class="mt-0.5 text-xs">
+                        <span class="rounded-full bg-primary-50 px-2 py-0.5 text-primary-700">{orgTypeLabel(t.orgType)}</span>
+                        {t.nameEn && <span class="ml-2 text-slate-500">{t.nameEn}</span>}
+                      </div>
                     </td>
                     <td class="px-4 py-3 text-slate-600">
                       {new Date(t.createdAt).toLocaleString('th-TH')}
