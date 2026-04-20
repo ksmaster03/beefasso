@@ -66,6 +66,40 @@ export const users = pgTable('users', {
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 });
 
+export const feedbackType = pgEnum('feedback_type', ['complaint', 'compliment', 'bug', 'suggestion']);
+export const feedbackStatus = pgEnum('feedback_status', ['new', 'reviewed', 'resolved', 'dismissed']);
+
+export const feedback = pgTable(
+  'feedback',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    product: text().notNull(), // 'jungdee' | 'cattlepro'
+    type: feedbackType().notNull(),
+    subject: text().notNull(),
+    message: text().notNull(),
+    contactName: text(),
+    contactEmail: text(),
+    contactPhone: text(),
+    pageUrl: text(),
+    userAgent: text(),
+    submitterUserId: uuid(),
+    tenantId: uuid(),
+    farmId: uuid(),
+    status: feedbackStatus().notNull().default('new'),
+    googleTaskId: text(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('feedback_status_idx').on(t.status), index('feedback_created_idx').on(t.createdAt)],
+);
+
+// Key/value store for platform-wide settings the super admin can edit
+// (e.g. Google Tasks refresh token + task list id).
+export const platformSettings = pgTable('platform_settings', {
+  key: text().primaryKey(),
+  value: jsonb().notNull().default({}),
+  updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+});
+
 export const passwordResetTokens = pgTable(
   'password_reset_tokens',
   {

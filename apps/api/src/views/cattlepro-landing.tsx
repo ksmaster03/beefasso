@@ -197,11 +197,14 @@ const CTA = () => (
 
 const Footer = () => (
   <footer class="border-t border-slate-200 bg-white py-8">
-    <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 text-xs text-slate-500 sm:flex-row">
+    <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 text-xs text-slate-500 sm:flex-row">
       <div>Cattle Pro v0.0.1 — MVP · by growgenius</div>
-      <a href="https://jungdee.growgenius.co.th" class="hover:text-accent-600">
-        → สำหรับสมาคม: Jungdee
-      </a>
+      <div class="flex flex-wrap gap-4">
+        <a href="/feedback" class="hover:text-accent-600">ส่งความคิดเห็น</a>
+        <a href="https://jungdee.growgenius.co.th" class="hover:text-accent-600">
+          สำหรับสมาคม: Jungdee →
+        </a>
+      </div>
     </div>
   </footer>
 );

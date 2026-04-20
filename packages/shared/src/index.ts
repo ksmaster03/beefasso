@@ -5,6 +5,7 @@ export * from './cattle.ts';
 export * from './payments.ts';
 export * from './certificates.ts';
 export * from './farm.ts';
+export * from './feedback.ts';
 
 export type Product = 'jungdee' | 'cattlepro';
 export function resolveProductFromHost(host: string | null | undefined): Product {

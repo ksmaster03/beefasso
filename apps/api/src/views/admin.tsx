@@ -27,6 +27,12 @@ export const renderAdmin = (userName: string, pending: PendingTenant[]) => (
         </div>
       </header>
 
+      <nav class="mt-6 flex flex-wrap gap-2 text-xs">
+        <a href="/admin" class="rounded-full bg-slate-900 px-3 py-1 text-white">สมาคมรออนุมัติ</a>
+        <a href="/admin/feedback" class="rounded-full border border-slate-300 bg-white px-3 py-1 text-slate-700 hover:border-primary-500 hover:text-primary-600">Feedback inbox</a>
+        <a href="/admin/integrations" class="rounded-full border border-slate-300 bg-white px-3 py-1 text-slate-700 hover:border-primary-500 hover:text-primary-600">Integrations (Google Tasks)</a>
+      </nav>
+
       <section class="mt-8">
         {pending.length === 0 ? (
           <div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">

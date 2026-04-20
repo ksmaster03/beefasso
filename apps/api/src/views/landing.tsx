@@ -277,9 +277,12 @@ const CTA = () => (
 
 const Footer = () => (
   <footer class="border-t border-slate-200 bg-white py-8">
-    <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 text-xs text-slate-500 sm:flex-row">
+    <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 text-xs text-slate-500 sm:flex-row">
       <div>v0.0.1 — MVP · Jungdee by growgenius</div>
-      <div>© 2026 Jungdee. ทุกสิทธิ์สงวน</div>
+      <div class="flex gap-4">
+        <a href="/feedback" class="hover:text-primary-600">ส่งความคิดเห็น</a>
+        <span>© 2026 Jungdee</span>
+      </div>
     </div>
   </footer>
 );

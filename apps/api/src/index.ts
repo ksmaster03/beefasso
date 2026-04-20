@@ -29,6 +29,14 @@ import { paymentRoutes } from './routes/payments.ts';
 import { settingsRoutes } from './routes/settings.ts';
 import { certificateRoutes } from './routes/certificates.ts';
 import { farmRoutes } from './routes/farm.ts';
+import { feedbackRoutes } from './routes/feedback.ts';
+import { adminIntegrationRoutes } from './routes/admin-integrations.ts';
+import { renderFeedback } from './views/feedback.tsx';
+import { renderAdminFeedback } from './views/admin-feedback.tsx';
+import { renderAdminIntegrations } from './views/admin-integrations.tsx';
+import { getTasksConfig, listTaskLists } from './lib/google-tasks.ts';
+import { feedback } from '@beefasso/db';
+import { desc } from 'drizzle-orm';
 import { getSession } from './lib/auth.ts';
 type Env = { Variables: { tenant: TenantContext; product: Product } };
 
@@ -66,6 +74,8 @@ app.route('/api/payments', paymentRoutes);
 app.route('/api/settings', settingsRoutes);
 app.route('/api/certificates', certificateRoutes);
 app.route('/api/farm', farmRoutes);
+app.route('/api/feedback', feedbackRoutes);
+app.route('/api/admin/integrations', adminIntegrationRoutes);
 
 // ----- Public SSR pages (product-aware) -----
 app.get('/', (c) => {
@@ -85,6 +95,42 @@ app.get('/reset-password', (c) => {
   return c.html(renderResetPassword(token));
 });
 app.get('/verify/:certNo', renderVerify);
+
+// Public feedback form
+app.get('/feedback', (c) => c.html(renderFeedback(c.get('product'))));
+
+// Super admin: feedback inbox + integrations
+app.get('/admin/feedback', async (c) => {
+  const user = await getSession(c);
+  if (!user) return c.redirect('/login');
+  if (user.platformRole !== 'super_admin') return c.html('<p>Forbidden</p>', 403);
+  const rows = await db.select().from(feedback).orderBy(desc(feedback.createdAt)).limit(200);
+  const cfg = await getTasksConfig();
+  const normalized = rows.map((r) => ({
+    ...r,
+    createdAt: r.createdAt.toISOString(),
+  })) as unknown as Parameters<typeof renderAdminFeedback>[0];
+  return c.html(renderAdminFeedback(normalized, { connected: !!cfg, email: cfg?.email, taskListTitle: cfg?.taskListTitle ?? null }));
+});
+
+app.get('/admin/integrations', async (c) => {
+  const user = await getSession(c);
+  if (!user) return c.redirect('/login');
+  if (user.platformRole !== 'super_admin') return c.html('<p>Forbidden</p>', 403);
+  const cfg = await getTasksConfig();
+  let lists: { id: string; title: string }[] = [];
+  if (cfg) {
+    try { lists = await listTaskLists(cfg.refreshToken); } catch {}
+  }
+  const justConnected = c.req.query('tasks') === 'connected';
+  return c.html(
+    renderAdminIntegrations(
+      { connected: !!cfg, email: cfg?.email, taskListId: cfg?.taskListId ?? null, taskListTitle: cfg?.taskListTitle ?? null },
+      lists,
+      justConnected,
+    ),
+  );
+});
 
 // ----- Cattle Pro in-app routes -----
 app.get('/app', async (c) => {
