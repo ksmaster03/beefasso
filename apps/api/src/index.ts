@@ -31,10 +31,13 @@ import { certificateRoutes } from './routes/certificates.ts';
 import { farmRoutes } from './routes/farm.ts';
 import { feedbackRoutes } from './routes/feedback.ts';
 import { adminIntegrationRoutes } from './routes/admin-integrations.ts';
+import { adminSettingsRoutes } from './routes/admin-settings.ts';
 import { renderFeedback } from './views/feedback.tsx';
 import { renderAdminFeedback } from './views/admin-feedback.tsx';
 import { renderAdminIntegrations } from './views/admin-integrations.tsx';
+import { renderAdminSettings } from './views/admin-settings.tsx';
 import { getTasksConfig, listTaskLists } from './lib/google-tasks.ts';
+import { getAutoApprove } from './lib/platform-settings.ts';
 import { feedback } from '@beefasso/db';
 import { desc } from 'drizzle-orm';
 import { getSession } from './lib/auth.ts';
@@ -77,6 +80,7 @@ app.route('/api/certificates', certificateRoutes);
 app.route('/api/farm', farmRoutes);
 app.route('/api/feedback', feedbackRoutes);
 app.route('/api/admin/integrations', adminIntegrationRoutes);
+app.route('/api/admin/settings', adminSettingsRoutes);
 
 // ----- Public SSR pages (product-aware) -----
 app.get('/', (c) => {
@@ -112,6 +116,14 @@ app.get('/admin/feedback', async (c) => {
     createdAt: r.createdAt.toISOString(),
   })) as unknown as Parameters<typeof renderAdminFeedback>[0];
   return c.html(renderAdminFeedback(normalized, { connected: !!cfg, email: cfg?.email, taskListTitle: cfg?.taskListTitle ?? null }));
+});
+
+app.get('/admin/settings', async (c) => {
+  const user = await getSession(c);
+  if (!user) return c.redirect('/login');
+  if (user.platformRole !== 'super_admin') return c.html('<p>Forbidden</p>', 403);
+  const cfg = await getAutoApprove();
+  return c.html(renderAdminSettings(cfg));
 });
 
 app.get('/admin/integrations', async (c) => {

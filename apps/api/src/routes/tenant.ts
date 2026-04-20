@@ -5,6 +5,7 @@ import { db, tenants, users, tenantUsers, feeConfigs } from '@beefasso/db';
 import { tenantSignupSchema } from '@beefasso/shared';
 import { hashPassword } from '../lib/auth.ts';
 import { requireSuperAdmin } from '../lib/auth.ts';
+import { getAutoApprove } from '../lib/platform-settings.ts';
 
 export const tenantRoutes = new Hono();
 
@@ -19,7 +20,8 @@ tenantRoutes.post('/signup', zValidator('json', tenantSignupSchema), async (c) =
   if (emailHit.length > 0) return c.json({ error: 'email_taken' }, 409);
 
   const pwHash = await hashPassword(input.password);
-  const createdAt = new Date();
+  const autoApprove = await getAutoApprove();
+  const shouldAutoApprove = autoApprove[input.orgType] === true;
 
   await db.transaction(async (tx) => {
     const [t] = await tx
@@ -29,7 +31,8 @@ tenantRoutes.post('/signup', zValidator('json', tenantSignupSchema), async (c) =
         nameTh: input.nameTh,
         nameEn: input.nameEn,
         orgType: input.orgType,
-        status: 'pending',
+        status: shouldAutoApprove ? 'active' : 'pending',
+        approvedAt: shouldAutoApprove ? new Date() : null,
       })
       .returning({ id: tenants.id });
     const [u] = await tx
@@ -52,7 +55,11 @@ tenantRoutes.post('/signup', zValidator('json', tenantSignupSchema), async (c) =
     ]);
   });
 
-  return c.json({ ok: true, status: 'pending', message: 'ส่งข้อมูลแล้ว รอการอนุมัติจากผู้ดูแลระบบ' });
+  const status = shouldAutoApprove ? 'active' : 'pending';
+  const message = shouldAutoApprove
+    ? 'สมัครเรียบร้อย เข้าใช้งานได้ทันที'
+    : 'ส่งข้อมูลแล้ว รอการอนุมัติจากผู้ดูแลระบบ';
+  return c.json({ ok: true, status, message, slug: input.slug });
 });
 
 // Super admin: list pending tenants
