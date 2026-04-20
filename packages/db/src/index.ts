@@ -20,10 +20,17 @@ export * from './schema.ts';
  */
 export async function withTenant<T>(tenantId: string, fn: (tx: typeof db) => Promise<T>): Promise<T> {
   return db.transaction(async (tx) => {
-    // SET LOCAL requires a constant, not a bind param — but tenantId comes from trusted session.
-    // Validate UUID to be safe.
     if (!/^[0-9a-f-]{36}$/i.test(tenantId)) throw new Error('invalid tenantId');
     await tx.execute(sql.raw(`SET LOCAL app.tenant_id = '${tenantId}'`));
+    return fn(tx as unknown as typeof db);
+  });
+}
+
+/** Like withTenant but sets app.farm_id for the Cattle Pro RLS policies. */
+export async function withFarm<T>(farmId: string, fn: (tx: typeof db) => Promise<T>): Promise<T> {
+  return db.transaction(async (tx) => {
+    if (!/^[0-9a-f-]{36}$/i.test(farmId)) throw new Error('invalid farmId');
+    await tx.execute(sql.raw(`SET LOCAL app.farm_id = '${farmId}'`));
     return fn(tx as unknown as typeof db);
   });
 }

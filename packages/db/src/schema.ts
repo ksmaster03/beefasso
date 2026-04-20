@@ -30,6 +30,15 @@ export const cattleSex = pgEnum('cattle_sex', ['male', 'female']);
 export const paymentStatus = pgEnum('payment_status', ['pending', 'verified', 'rejected']);
 export const verifyMethod = pgEnum('verify_method', ['manual', 'easyslip']);
 
+// ---- Cattle Pro enums ----
+export const farmStatus = pgEnum('farm_status', ['active', 'suspended']);
+export const farmRole = pgEnum('farm_role', ['owner', 'admin', 'staff']);
+export const farmCattleStatus = pgEnum('farm_cattle_status', ['active', 'sold', 'deceased']);
+export const healthType = pgEnum('health_type', ['illness', 'vaccine', 'treatment', 'checkup']);
+export const breedingMethod = pgEnum('breeding_method', ['AI', 'natural']);
+export const breedingResult = pgEnum('breeding_result', ['pending', 'confirmed', 'failed', 'calved']);
+export const financeType = pgEnum('finance_type', ['income', 'expense']);
+
 // ============ platform ============
 
 export const tenants = pgTable('tenants', {
@@ -154,6 +163,173 @@ export const payments = pgTable(
     uniqueIndex('payments_tenant_ref').on(t.tenantId, t.refCode),
     index('payments_tenant_status').on(t.tenantId, t.status),
   ],
+);
+
+// ============================================================
+// Cattle Pro — farm management SaaS (separate tenancy from Jungdee)
+// ============================================================
+
+export const farms = pgTable('farms', {
+  id: uuid().primaryKey().defaultRandom(),
+  slug: text().notNull().unique(),
+  nameTh: text().notNull(),
+  nameEn: text(),
+  ownerUserId: uuid().notNull().references(() => users.id, { onDelete: 'restrict' }),
+  tenantId: uuid().references(() => tenants.id, { onDelete: 'set null' }), // optional link to Jungdee association
+  status: farmStatus().notNull().default('active'),
+  plan: text().notNull().default('free'),
+  settings: jsonb().notNull().default({}),
+  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+});
+
+export const farmUsers = pgTable(
+  'farm_users',
+  {
+    farmId: uuid().notNull().references(() => farms.id, { onDelete: 'cascade' }),
+    userId: uuid().notNull().references(() => users.id, { onDelete: 'cascade' }),
+    role: farmRole().notNull(),
+    active: boolean().notNull().default(true),
+  },
+  (t) => [uniqueIndex('farm_users_pk').on(t.farmId, t.userId), index('farm_users_user').on(t.userId)],
+);
+
+export const farmPens = pgTable(
+  'farm_pens',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    farmId: uuid().notNull().references(() => farms.id, { onDelete: 'cascade' }),
+    name: text().notNull(),
+    capacity: integer().notNull().default(0),
+    notes: text(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('farm_pens_name').on(t.farmId, t.name)],
+);
+
+export const farmCattle = pgTable(
+  'farm_cattle',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    farmId: uuid().notNull().references(() => farms.id, { onDelete: 'cascade' }),
+    earTag: text().notNull(),
+    regNo: text(),
+    name: text(),
+    breed: text(),
+    sex: cattleSex().notNull(),
+    dob: date(),
+    color: text(),
+    status: farmCattleStatus().notNull().default('active'),
+    penId: uuid(),
+    // Optional link to the tenant-registry cattle if owner registered it with a Jungdee association.
+    registryCattleId: uuid(),
+    photoUrls: text().array().notNull().default(sql`'{}'::text[]`),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('farm_cattle_tag').on(t.farmId, t.earTag),
+    index('farm_cattle_pen').on(t.farmId, t.penId),
+    index('farm_cattle_status').on(t.farmId, t.status),
+  ],
+);
+
+export const healthRecords = pgTable(
+  'health_records',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    farmId: uuid().notNull().references(() => farms.id, { onDelete: 'cascade' }),
+    cattleId: uuid().notNull(),
+    type: healthType().notNull(),
+    title: text().notNull(),
+    notes: text(),
+    occurredAt: date().notNull(),
+    nextDueAt: date(),
+    vetName: text(),
+    cost: numeric({ precision: 12, scale: 2 }),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('health_records_farm_cattle').on(t.farmId, t.cattleId), index('health_records_due').on(t.farmId, t.nextDueAt)],
+);
+
+export const feedItems = pgTable(
+  'feed_items',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    farmId: uuid().notNull().references(() => farms.id, { onDelete: 'cascade' }),
+    name: text().notNull(),
+    unit: text().notNull().default('kg'),
+    stockQty: numeric({ precision: 12, scale: 2 }).notNull().default('0'),
+    costPerUnit: numeric({ precision: 12, scale: 2 }).notNull().default('0'),
+    reorderLevel: numeric({ precision: 12, scale: 2 }).notNull().default('0'),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('feed_items_name').on(t.farmId, t.name)],
+);
+
+export const feedRecipes = pgTable(
+  'feed_recipes',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    farmId: uuid().notNull().references(() => farms.id, { onDelete: 'cascade' }),
+    name: text().notNull(),
+    // items: [{ feedItemId, quantity, unit }]
+    items: jsonb().notNull().default([]),
+    notes: text(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+);
+
+export const milkRecords = pgTable(
+  'milk_records',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    farmId: uuid().notNull().references(() => farms.id, { onDelete: 'cascade' }),
+    cattleId: uuid().notNull(),
+    recordedAt: date().notNull(),
+    // morning, afternoon, evening
+    session: text().notNull().default('morning'),
+    kg: numeric({ precision: 8, scale: 2 }).notNull(),
+    fatPct: numeric({ precision: 5, scale: 2 }),
+    notes: text(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('milk_records_farm_cattle_date').on(t.farmId, t.cattleId, t.recordedAt)],
+);
+
+export const breedingRecords = pgTable(
+  'breeding_records',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    farmId: uuid().notNull().references(() => farms.id, { onDelete: 'cascade' }),
+    damId: uuid().notNull(),
+    sireId: uuid(),
+    sireExternalLabel: text(), // when sire isn't in the farm's herd
+    method: breedingMethod().notNull(),
+    bredAt: date().notNull(),
+    result: breedingResult().notNull().default('pending'),
+    checkedAt: date(),
+    dueAt: date(),
+    calvedAt: date(),
+    calfId: uuid(),
+    notes: text(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('breeding_records_farm_dam').on(t.farmId, t.damId)],
+);
+
+export const financeEntries = pgTable(
+  'finance_entries',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    farmId: uuid().notNull().references(() => farms.id, { onDelete: 'cascade' }),
+    occurredAt: date().notNull(),
+    type: financeType().notNull(),
+    category: text().notNull(),
+    amount: numeric({ precision: 14, scale: 2 }).notNull(),
+    notes: text(),
+    ref: text(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('finance_entries_farm_date').on(t.farmId, t.occurredAt)],
 );
 
 export const certificates = pgTable(

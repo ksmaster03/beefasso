@@ -52,10 +52,15 @@ document.getElementById('f').addEventListener('submit', async (e) => {
   const j = await r.json();
   if (r.ok) {
     const u = j.user;
+    const isCattlePro = location.hostname.startsWith('cattlepro.');
+    if (isCattlePro) {
+      if (u.farmId) { location.href = '/app'; return; }
+      msg.textContent = 'บัญชีนี้ยังไม่มีฟาร์มในระบบ — กรุณาสมัครฟาร์มก่อน';
+      msg.className = 'rounded-md bg-yellow-50 p-3 text-sm text-yellow-700';
+      return;
+    }
     if (u.platformRole === 'super_admin') location.href = '/admin';
     else if (u.tenantId) {
-      const slugR = await fetch('/api/auth/me');
-      // Just redirect to generic app — tenant app resolves from URL
       location.href = '/';
     } else {
       msg.textContent = 'ยังไม่ได้รับอนุมัติเข้าสมาคมใด ๆ';

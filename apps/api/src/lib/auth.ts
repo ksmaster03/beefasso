@@ -87,3 +87,15 @@ export const requireTenantAuth: MiddlewareHandler<{
   c.set('tenantId', user.tenantId);
   await next();
 };
+
+/** Require a logged-in user attached to an active farm (Cattle Pro). */
+export const requireFarmAuth: MiddlewareHandler<{
+  Variables: { user: SessionUser; farmId: string };
+}> = async (c, next) => {
+  const user = await getSession(c);
+  if (!user) return c.json({ error: 'unauthorized' }, 401);
+  if (!user.farmId) return c.json({ error: 'no_active_farm' }, 403);
+  c.set('user', user);
+  c.set('farmId', user.farmId);
+  await next();
+};

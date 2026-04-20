@@ -14,4 +14,7 @@ export type SessionUser = {
   platformRole: 'super_admin' | 'user';
   tenantId?: string;
   tenantRole?: 'owner' | 'admin' | 'staff' | 'member';
+  farmId?: string;
+  farmRole?: 'owner' | 'admin' | 'staff';
+  farmSlug?: string;
 };

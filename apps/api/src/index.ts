@@ -4,8 +4,8 @@ import { secureHeaders } from 'hono/secure-headers';
 import { trimTrailingSlash } from 'hono/trailing-slash';
 import { serveStatic } from 'hono/bun';
 import { eq } from 'drizzle-orm';
-import { resolveTenantFromPath, type TenantContext } from '@beefasso/shared';
-import { db, tenants } from '@beefasso/db';
+import { resolveTenantFromPath, resolveProductFromHost, type TenantContext, type Product } from '@beefasso/shared';
+import { db, tenants, farms } from '@beefasso/db';
 import { renderPlatformLanding } from './views/landing.tsx';
 import { renderTenantEntry } from './views/tenant-entry.tsx';
 import { renderVerify } from './views/verify.tsx';
@@ -13,6 +13,9 @@ import { renderSignup } from './views/signup.tsx';
 import { renderLogin } from './views/login.tsx';
 import { renderAdmin } from './views/admin.tsx';
 import { renderTenantNotFound } from './views/not-found.tsx';
+import { renderCattleProLanding } from './views/cattlepro-landing.tsx';
+import { renderCattleProSignup } from './views/cattlepro-signup.tsx';
+import { renderCattleProAppEntry } from './views/cattlepro-app-entry.tsx';
 import { authRoutes } from './routes/auth.ts';
 import { tenantRoutes } from './routes/tenant.ts';
 import { verifyRoutes } from './routes/verify.ts';
@@ -22,9 +25,9 @@ import { feeConfigRoutes } from './routes/fee-configs.ts';
 import { paymentRoutes } from './routes/payments.ts';
 import { settingsRoutes } from './routes/settings.ts';
 import { certificateRoutes } from './routes/certificates.ts';
+import { farmRoutes } from './routes/farm.ts';
 import { getSession } from './lib/auth.ts';
-
-type Env = { Variables: { tenant: TenantContext } };
+type Env = { Variables: { tenant: TenantContext; product: Product } };
 
 const app = new Hono<Env>();
 
@@ -36,10 +39,12 @@ app.use('*', trimTrailingSlash());
 app.use('/assets/*', serveStatic({ root: './public' }));
 app.use('/photos/*', serveStatic({ root: './public' }));
 
-// Resolve tenant from URL path (/t/:slug/...).
+// Resolve tenant from URL path (Jungdee) and product from Host header.
 app.use('*', async (c, next) => {
   const tenant = resolveTenantFromPath(new URL(c.req.url).pathname);
+  const product = resolveProductFromHost(c.req.header('host'));
   c.set('tenant', tenant);
+  c.set('product', product);
   await next();
 });
 
@@ -57,12 +62,39 @@ app.route('/api/fee-configs', feeConfigRoutes);
 app.route('/api/payments', paymentRoutes);
 app.route('/api/settings', settingsRoutes);
 app.route('/api/certificates', certificateRoutes);
+app.route('/api/farm', farmRoutes);
 
-// ----- Public SSR pages -----
-app.get('/', (c) => c.html(renderPlatformLanding()));
-app.get('/signup', (c) => c.html(renderSignup()));
+// ----- Public SSR pages (product-aware) -----
+app.get('/', (c) => {
+  const product = c.get('product');
+  if (product === 'cattlepro') return c.html(renderCattleProLanding());
+  return c.html(renderPlatformLanding());
+});
+app.get('/signup', (c) => {
+  const product = c.get('product');
+  if (product === 'cattlepro') return c.html(renderCattleProSignup());
+  return c.html(renderSignup());
+});
 app.get('/login', (c) => c.html(renderLogin()));
 app.get('/verify/:certNo', renderVerify);
+
+// ----- Cattle Pro in-app routes -----
+app.get('/app', async (c) => {
+  if (c.get('product') !== 'cattlepro') return c.redirect('/');
+  const user = await getSession(c);
+  if (!user || !user.farmId) return c.redirect('/login');
+  const [f] = await db.select({ slug: farms.slug, nameTh: farms.nameTh }).from(farms).where(eq(farms.id, user.farmId));
+  if (!f) return c.redirect('/login');
+  return c.html(renderCattleProAppEntry(f.slug, f.nameTh));
+});
+app.get('/app/*', async (c) => {
+  if (c.get('product') !== 'cattlepro') return c.redirect('/');
+  const user = await getSession(c);
+  if (!user || !user.farmId) return c.redirect('/login');
+  const [f] = await db.select({ slug: farms.slug, nameTh: farms.nameTh }).from(farms).where(eq(farms.id, user.farmId));
+  if (!f) return c.redirect('/login');
+  return c.html(renderCattleProAppEntry(f.slug, f.nameTh));
+});
 
 // Super admin dashboard
 app.get('/admin', async (c) => {

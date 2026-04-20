@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { eq } from 'drizzle-orm';
-import { db, users, tenantUsers, tenants } from '@beefasso/db';
+import { db, users, tenantUsers, tenants, farms, farmUsers } from '@beefasso/db';
 import { loginSchema, type SessionUser } from '@beefasso/shared';
 import {
   verifyPassword,
@@ -21,8 +21,8 @@ authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
     return c.json({ error: 'invalid_credentials' }, 401);
   }
 
-  // If not platform admin, find the (first) active tenant membership
-  let tenantId: string | undefined;
+  // Find tenant + farm memberships so the session carries both products.
+  let tenantId: SessionUser['tenantId'];
   let tenantRole: SessionUser['tenantRole'];
   if (u.platformRole !== 'super_admin') {
     const [link] = await db
@@ -36,6 +36,20 @@ authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
     }
   }
 
+  let farmId: SessionUser['farmId'];
+  let farmRole: SessionUser['farmRole'];
+  let farmSlug: SessionUser['farmSlug'];
+  const [flink] = await db
+    .select({ farmId: farmUsers.farmId, role: farmUsers.role, active: farmUsers.active, status: farms.status, slug: farms.slug })
+    .from(farmUsers)
+    .innerJoin(farms, eq(farmUsers.farmId, farms.id))
+    .where(eq(farmUsers.userId, u.id));
+  if (flink?.active && flink.status === 'active') {
+    farmId = flink.farmId;
+    farmRole = flink.role;
+    farmSlug = flink.slug;
+  }
+
   const sess: SessionUser = {
     userId: u.id,
     email: u.email,
@@ -43,6 +57,9 @@ authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
     platformRole: u.platformRole,
     tenantId,
     tenantRole,
+    farmId,
+    farmRole,
+    farmSlug,
   };
   const token = await signSession(sess);
   setSessionCookie(c, token);
